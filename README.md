@@ -1,144 +1,144 @@
 # Flow2API
 
-<div align="center">
+<div align="center"> 
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/fastapi-0.119.0-green.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 
-**一个功能完整的 OpenAI 兼容 API 服务，为 Flow 提供统一的接口**
+**A full-featured OpenAI-compatible API service that provides a unified interface for Flow**
 
 </div>
 
-## ✨ 核心特性
+## ✨ Key Features
 
-- 🎨 **文生图** / **图生图**
-- 🎬 **文生视频** / **图生视频**
-- 🎞️ **首尾帧视频**
-- 🔄 **AT自动刷新**
-- 📊 **余额显示** - 实时查询和显示 VideoFX Credits
-- 🚀 **负载均衡** - 多 Token 轮询和并发控制
-- 🌐 **代理支持** - 支持 HTTP/SOCKS5 代理
-- 📱 **Web 管理界面** - 直观的 Token 和配置管理
-- 🎨 **图片生成连续对话**
+- 🎨 **Text-to-Image** / **Image-to-Image**
+- 🎬 **Text-to-Video** / **Image-to-Video**
+- 🎞️ **First/Last Frame Video**
+- 🔄 **Automatic AT Refresh**
+- 📊 **Credits Display** - Query and display VideoFX Credits in real time
+- 🚀 **Load Balancing** - Multi-token rotation and concurrency control
+- 🌐 **Proxy Support** - HTTP/SOCKS5 proxies
+- 📱 **Web Admin UI** - Intuitive token and configuration management
+- 🎨 **Continuous Conversation for Image Generation**
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 前置要求
+### Prerequisites
 
-- Docker 和 Docker Compose（推荐）
-- 或 Python 3.8+
+- Docker and Docker Compose (recommended)
+- Or Python 3.8+
 
-- 由于Flow增加了额外的验证码，你可以自行选择使用浏览器打码或第三发打码：
-注册[YesCaptcha](https://yescaptcha.com/i/13Xd8K)并获取api key，将其填入系统配置页面```YesCaptcha API密钥```区域
+- Since Flow adds an extra captcha step, you can choose either browser-based captcha solving or a third-party service.
+Register at [YesCaptcha](https://yescaptcha.com/i/13Xd8K) and get an API key, then fill it in the system settings page under `YesCaptcha API Key`.
 
-### 方式一：Docker 部署（推荐）
+### Option 1: Docker Deployment (Recommended)
 
-#### 标准模式（不使用代理）
+#### Standard Mode (No Proxy)
 
 ```bash
-# 克隆项目
+# Clone the repository
 git clone https://github.com/TheSmallHanCat/flow2api.git
 cd flow2api
 
-# 启动服务
+# Start the service
 docker-compose up -d
 
-# 查看日志
+# View logs
 docker-compose logs -f
 ```
 
-#### WARP 模式（使用代理）
+#### WARP Mode (With Proxy)
 
 ```bash
-# 使用 WARP 代理启动
+# Start with WARP proxy
 docker-compose -f docker-compose.warp.yml up -d
 
-# 查看日志
+# View logs
 docker-compose -f docker-compose.warp.yml logs -f
 ```
 
-### 方式二：本地部署
+### Option 2: Local Deployment
 
 ```bash
-# 克隆项目
+# Clone the repository
 git clone https://github.com/TheSmallHanCat/flow2api.git
 cd sora2api
 
-# 创建虚拟环境
+# Create a virtual environment
 python -m venv venv
 
-# 激活虚拟环境
+# Activate the virtual environment
 # Windows
 venv\Scripts\activate
 # Linux/Mac
 source venv/bin/activate
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 启动服务
+# Start the service
 python main.py
 ```
 
-### 首次访问
+### First Login
 
-服务启动后,访问管理后台: **http://localhost:8000**,首次登录后请立即修改密码!
+After the service starts, open the admin console at **http://localhost:8000**. Please change the password immediately after your first login.
 
-- **用户名**: `admin`
-- **密码**: `admin`
+- **Username**: `admin`
+- **Password**: `admin`
 
-## 📋 支持的模型
+## 📋 Supported Models
 
-### 图片生成
+### Image Generation
 
-| 模型名称 | 说明| 尺寸 |
+| Model Name | Description | Size |
 |---------|--------|--------|
-| `gemini-2.5-flash-image-landscape` | 图/文生图 | 横屏 |
-| `gemini-2.5-flash-image-portrait` | 图/文生图 | 竖屏 |
-| `gemini-3.0-pro-image-landscape` | 图/文生图 | 横屏 |
-| `gemini-3.0-pro-image-portrait` | 图/文生图 | 竖屏 |
-| `imagen-4.0-generate-preview-landscape` | 图/文生图 | 横屏 |
-| `imagen-4.0-generate-preview-portrait` | 图/文生图 | 竖屏 |
+| `gemini-2.5-flash-image-landscape` | Image/Text-to-Image | Landscape |
+| `gemini-2.5-flash-image-portrait` | Image/Text-to-Image | Portrait |
+| `gemini-3.0-pro-image-landscape` | Image/Text-to-Image | Landscape |
+| `gemini-3.0-pro-image-portrait` | Image/Text-to-Image | Portrait |
+| `imagen-4.0-generate-preview-landscape` | Image/Text-to-Image | Landscape |
+| `imagen-4.0-generate-preview-portrait` | Image/Text-to-Image | Portrait |
 
-### 视频生成
+### Video Generation
 
-#### 文生视频 (T2V - Text to Video)
-⚠️ **不支持上传图片**
+#### Text-to-Video (T2V)
+⚠️ **Image upload is not supported**
 
-| 模型名称 | 说明| 尺寸 |
+| Model Name | Description | Size |
 |---------|---------|--------|
-| `veo_3_1_t2v_fast_portrait` | 文生视频 | 竖屏 |
-| `veo_3_1_t2v_fast_landscape` | 文生视频 | 横屏 |
-| `veo_2_1_fast_d_15_t2v_portrait` | 文生视频 | 竖屏 |
-| `veo_2_1_fast_d_15_t2v_landscape` | 文生视频 | 横屏 |
-| `veo_2_0_t2v_portrait` | 文生视频 | 竖屏 |
-| `veo_2_0_t2v_landscape` | 文生视频 | 横屏 |
+| `veo_3_1_t2v_fast_portrait` | Text-to-Video | Portrait |
+| `veo_3_1_t2v_fast_landscape` | Text-to-Video | Landscape |
+| `veo_2_1_fast_d_15_t2v_portrait` | Text-to-Video | Portrait |
+| `veo_2_1_fast_d_15_t2v_landscape` | Text-to-Video | Landscape |
+| `veo_2_0_t2v_portrait` | Text-to-Video | Portrait |
+| `veo_2_0_t2v_landscape` | Text-to-Video | Landscape |
 
-#### 首尾帧模型 (I2V - Image to Video)
-📸 **支持1-2张图片：首尾帧**
+#### First/Last Frame Models (I2V - Image to Video)
+📸 **Supports 1-2 images: first and last frames**
 
-| 模型名称 | 说明| 尺寸 |
+| Model Name | Description | Size |
 |---------|---------|--------|
-| `veo_3_1_i2v_s_fast_fl_portrait` | 图生视频 | 竖屏 |
-| `veo_3_1_i2v_s_fast_fl_landscape` | 图生视频 | 横屏 |
-| `veo_2_1_fast_d_15_i2v_portrait` | 图生视频 | 竖屏 |
-| `veo_2_1_fast_d_15_i2v_landscape` | 图生视频 | 横屏 |
-| `veo_2_0_i2v_portrait` | 图生视频 | 竖屏 |
-| `veo_2_0_i2v_landscape` | 图生视频 | 横屏 |
+| `veo_3_1_i2v_s_fast_fl_portrait` | Image-to-Video | Portrait |
+| `veo_3_1_i2v_s_fast_fl_landscape` | Image-to-Video | Landscape |
+| `veo_2_1_fast_d_15_i2v_portrait` | Image-to-Video | Portrait |
+| `veo_2_1_fast_d_15_i2v_landscape` | Image-to-Video | Landscape |
+| `veo_2_0_i2v_portrait` | Image-to-Video | Portrait |
+| `veo_2_0_i2v_landscape` | Image-to-Video | Landscape |
 
-#### 多图生成 (R2V - Reference Images to Video)
-🖼️ **支持多张图片**
+#### Multi-Image Generation (R2V - Reference Images to Video)
+🖼️ **Supports multiple images**
 
-| 模型名称 | 说明| 尺寸 |
+| Model Name | Description | Size |
 |---------|---------|--------|
-| `veo_3_0_r2v_fast_portrait` | 图生视频 | 竖屏 |
-| `veo_3_0_r2v_fast_landscape` | 图生视频 | 横屏 |
+| `veo_3_0_r2v_fast_portrait` | Image-to-Video | Portrait |
+| `veo_3_0_r2v_fast_landscape` | Image-to-Video | Landscape |
 
-## 📡 API 使用示例（需要使用流式）
+## 📡 API Usage Examples (Streaming Required)
 
-### 文生图
+### Text-to-Image
 
 ```bash
 curl -X POST "http://localhost:8000/v1/chat/completions" \
@@ -149,14 +149,14 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
     "messages": [
       {
         "role": "user",
-        "content": "一只可爱的猫咪在花园里玩耍"
+        "content": "A cute cat playing in the garden"
       }
     ],
     "stream": true
   }'
 ```
 
-### 图生图
+### Image-to-Image
 
 ```bash
 curl -X POST "http://localhost:8000/v1/chat/completions" \
@@ -170,7 +170,7 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
         "content": [
           {
             "type": "text",
-            "text": "将这张图片变成水彩画风格"
+            "text": "Turn this image into a watercolor style"
           },
           {
             "type": "image_url",
@@ -185,7 +185,7 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
   }'
 ```
 
-### 文生视频
+### Text-to-Video
 
 ```bash
 curl -X POST "http://localhost:8000/v1/chat/completions" \
@@ -196,14 +196,14 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
     "messages": [
       {
         "role": "user",
-        "content": "一只小猫在草地上追逐蝴蝶"
+        "content": "A kitten chasing butterflies on the grass"
       }
     ],
     "stream": true
   }'
 ```
 
-### 首尾帧生成视频
+### First/Last Frame Video Generation
 
 ```bash
 curl -X POST "http://localhost:8000/v1/chat/completions" \
@@ -217,18 +217,18 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
         "content": [
           {
             "type": "text",
-            "text": "从第一张图过渡到第二张图"
+            "text": "Transition from the first image to the second image"
           },
           {
             "type": "image_url",
             "image_url": {
-              "url": "data:image/jpeg;base64,<首帧base64>"
+              "url": "data:image/jpeg;base64,<first_frame_base64>"
             }
           },
           {
             "type": "image_url",
             "image_url": {
-              "url": "data:image/jpeg;base64,<尾帧base64>"
+              "url": "data:image/jpeg;base64,<last_frame_base64>"
             }
           }
         ]
@@ -240,27 +240,27 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
 
 ---
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
----
-
-## 🙏 致谢
-
-- [PearNoDec](https://github.com/PearNoDec) 提供的YesCaptcha打码方案
-- [raomaiping](https://github.com/raomaiping) 提供的无头打码方案
-感谢所有贡献者和使用者的支持！
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-## 📞 联系方式
+## 🙏 Acknowledgements
 
-- 提交 Issue：[GitHub Issues](https://github.com/TheSmallHanCat/flow2api/issues)
+- [PearNoDec](https://github.com/PearNoDec) for the YesCaptcha solving solution
+- [raomaiping](https://github.com/raomaiping) for the headless solving solution
+Thanks to all contributors and users for your support!
 
 ---
 
-**⭐ 如果这个项目对你有帮助，请给个 Star！**
+## 📞 Contact
+
+- Submit an issue: [GitHub Issues](https://github.com/TheSmallHanCat/flow2api/issues)
+
+---
+
+**⭐ If this project helps you, please give it a Star!**
 
 ## Star History
 

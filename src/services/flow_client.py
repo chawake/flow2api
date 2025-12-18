@@ -10,7 +10,7 @@ from ..core.config import config
 
 
 class FlowClient:
-    """VideoFX API客户端"""
+    """VideoFX API Client"""
 
     def __init__(self, proxy_manager):
         self.proxy_manager = proxy_manager
@@ -29,16 +29,16 @@ class FlowClient:
         use_at: bool = False,
         at_token: Optional[str] = None
     ) -> Dict[str, Any]:
-        """统一HTTP请求处理
+        """Unified HTTP request handling
 
         Args:
-            method: HTTP方法 (GET/POST)
-            url: 完整URL
-            headers: 请求头
-            json_data: JSON请求体
-            use_st: 是否使用ST认证 (Cookie方式)
+            method: HTTP method (GET/POST)
+            url: Complete URL
+            headers: Request headers
+            json_data: JSON request body
+            use_st: Whether to use ST authentication (Cookie method)
             st_token: Session Token
-            use_at: 是否使用AT认证 (Bearer方式)
+            use_at: Whether to use AT authentication (Bearer method)
             at_token: Access Token
         """
         proxy_url = await self.proxy_manager.get_proxy_url()
@@ -46,15 +46,15 @@ class FlowClient:
         if headers is None:
             headers = {}
 
-        # ST认证 - 使用Cookie
+        # ST Authentication - use Cookie
         if use_st and st_token:
             headers["Cookie"] = f"__Secure-next-auth.session-token={st_token}"
 
-        # AT认证 - 使用Bearer
+        # AT Authentication - use Bearer
         if use_at and at_token:
             headers["authorization"] = f"Bearer {at_token}"
 
-        # 通用请求头
+        # Common request headers
         headers.update({
             "Content-Type": "application/json",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -119,10 +119,10 @@ class FlowClient:
 
             raise Exception(f"Flow API request failed: {error_msg}")
 
-    # ========== 认证相关 (使用ST) ==========
+    # ========== Authentication related (using ST) ==========
 
     async def st_to_at(self, st: str) -> dict:
-        """ST转AT
+        """Convert ST to AT
 
         Args:
             st: Session Token
@@ -143,14 +143,14 @@ class FlowClient:
         )
         return result
 
-    # ========== 项目管理 (使用ST) ==========
+    # ========== Project Management (using ST) ==========
 
     async def create_project(self, st: str, title: str) -> str:
-        """创建项目,返回project_id
+        """Create project, return project_id
 
         Args:
             st: Session Token
-            title: 项目标题
+            title: Project title
 
         Returns:
             project_id (UUID)
@@ -171,16 +171,16 @@ class FlowClient:
             st_token=st
         )
 
-        # 解析返回的project_id
+        # Parse returned project_id
         project_id = result["result"]["data"]["json"]["result"]["projectId"]
         return project_id
 
     async def delete_project(self, st: str, project_id: str):
-        """删除项目
+        """Delete project
 
         Args:
             st: Session Token
-            project_id: 项目ID
+            project_id: Project ID
         """
         url = f"{self.labs_base_url}/trpc/project.deleteProject"
         json_data = {
@@ -197,10 +197,10 @@ class FlowClient:
             st_token=st
         )
 
-    # ========== 余额查询 (使用AT) ==========
+    # ========== Balance Query (using AT) ==========
 
     async def get_credits(self, at: str) -> dict:
-        """查询余额
+        """Query balance
 
         Args:
             at: Access Token
@@ -220,7 +220,7 @@ class FlowClient:
         )
         return result
 
-    # ========== 图片上传 (使用AT) ==========
+    # ========== Image Upload (using AT) ==========
 
     async def upload_image(
         self,
@@ -228,23 +228,23 @@ class FlowClient:
         image_bytes: bytes,
         aspect_ratio: str = "IMAGE_ASPECT_RATIO_LANDSCAPE"
     ) -> str:
-        """上传图片,返回mediaGenerationId
+        """Upload image, return mediaGenerationId
 
         Args:
             at: Access Token
-            image_bytes: 图片字节数据
-            aspect_ratio: 图片或视频宽高比（会自动转换为图片格式）
+            image_bytes: Image byte data
+            aspect_ratio: Image or video aspect ratio (automatically converted to image format)
 
         Returns:
             mediaGenerationId (CAM...)
         """
-        # 转换视频aspect_ratio为图片aspect_ratio
+        # Convert video aspect_ratio to image aspect_ratio
         # VIDEO_ASPECT_RATIO_LANDSCAPE -> IMAGE_ASPECT_RATIO_LANDSCAPE
         # VIDEO_ASPECT_RATIO_PORTRAIT -> IMAGE_ASPECT_RATIO_PORTRAIT
         if aspect_ratio.startswith("VIDEO_"):
             aspect_ratio = aspect_ratio.replace("VIDEO_", "IMAGE_")
 
-        # 编码为base64 (去掉前缀)
+        # Encode as base64 (remove prefix)
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
 
         url = f"{self.api_base_url}:uploadUserImage"
@@ -269,11 +269,11 @@ class FlowClient:
             at_token=at
         )
 
-        # 返回mediaGenerationId
+        # Return mediaGenerationId
         media_id = result["mediaGenerationId"]["mediaGenerationId"]
         return media_id
 
-    # ========== 图片生成 (使用AT) - 同步返回 ==========
+    # ========== Image Generation (using AT) - Synchronous Return ==========
 
     async def generate_image(
         self,
@@ -284,22 +284,22 @@ class FlowClient:
         aspect_ratio: str,
         image_inputs: Optional[List[Dict]] = None
     ) -> dict:
-        """生成图片(同步返回)
+        """Generate image (synchronous return)
 
         Args:
             at: Access Token
-            project_id: 项目ID
-            prompt: 提示词
-            model_name: GEM_PIX, GEM_PIX_2 或 IMAGEN_3_5
-            aspect_ratio: 图片宽高比
-            image_inputs: 参考图片列表(图生图时使用)
+            project_id: Project ID
+            prompt: Prompt text
+            model_name: GEM_PIX, GEM_PIX_2 or IMAGEN_3_5
+            aspect_ratio: Image aspect ratio
+            image_inputs: Reference image list (used for image-to-image)
 
         Returns:
             {
                 "media": [{
                     "image": {
                         "generatedImage": {
-                            "fifeUrl": "图片URL",
+                            "fifeUrl": "Image URL",
                             ...
                         }
                     }
@@ -308,11 +308,11 @@ class FlowClient:
         """
         url = f"{self.api_base_url}/projects/{project_id}/flowMedia:batchGenerateImages"
 
-        # 获取 reCAPTCHA token
+        # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
 
-        # 构建请求
+        # Build request
         request_data = {
             "clientContext": {
                 "recaptchaToken": recaptcha_token,
@@ -345,7 +345,7 @@ class FlowClient:
 
         return result
 
-    # ========== 视频生成 (使用AT) - 异步返回 ==========
+    # ========== Video Generation (using AT) - Asynchronous Return ==========
 
     async def generate_video_text(
         self,
@@ -356,15 +356,15 @@ class FlowClient:
         aspect_ratio: str,
         user_paygate_tier: str = "PAYGATE_TIER_ONE"
     ) -> dict:
-        """文生视频,返回task_id
+        """Text to video, return task_id
 
         Args:
             at: Access Token
-            project_id: 项目ID
-            prompt: 提示词
-            model_key: veo_3_1_t2v_fast 等
-            aspect_ratio: 视频宽高比
-            user_paygate_tier: 用户等级
+            project_id: Project ID
+            prompt: Prompt text
+            model_key: veo_3_1_t2v_fast etc.
+            aspect_ratio: Video aspect ratio
+            user_paygate_tier: User tier
 
         Returns:
             {
@@ -378,7 +378,7 @@ class FlowClient:
         """
         url = f"{self.api_base_url}/video:batchAsyncGenerateVideoText"
 
-        # 获取 reCAPTCHA token
+        # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
         scene_id = str(uuid.uuid4())
@@ -424,23 +424,23 @@ class FlowClient:
         reference_images: List[Dict],
         user_paygate_tier: str = "PAYGATE_TIER_ONE"
     ) -> dict:
-        """图生视频,返回task_id
+        """Image to video, return task_id
 
         Args:
             at: Access Token
-            project_id: 项目ID
-            prompt: 提示词
+            project_id: Project ID
+            prompt: Prompt text
             model_key: veo_3_0_r2v_fast
-            aspect_ratio: 视频宽高比
-            reference_images: 参考图片列表 [{"imageUsageType": "IMAGE_USAGE_TYPE_ASSET", "mediaId": "..."}]
-            user_paygate_tier: 用户等级
+            aspect_ratio: Video aspect ratio
+            reference_images: Reference image list [{"imageUsageType": "IMAGE_USAGE_TYPE_ASSET", "mediaId": "..."}]
+            user_paygate_tier: User tier
 
         Returns:
-            同 generate_video_text
+            Same as generate_video_text
         """
         url = f"{self.api_base_url}/video:batchAsyncGenerateVideoReferenceImages"
 
-        # 获取 reCAPTCHA token
+        # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
         scene_id = str(uuid.uuid4())
@@ -488,24 +488,24 @@ class FlowClient:
         end_media_id: str,
         user_paygate_tier: str = "PAYGATE_TIER_ONE"
     ) -> dict:
-        """收尾帧生成视频,返回task_id
+        """Head and tail frame video generation, return task_id
 
         Args:
             at: Access Token
-            project_id: 项目ID
-            prompt: 提示词
+            project_id: Project ID
+            prompt: Prompt text
             model_key: veo_3_1_i2v_s_fast_fl
-            aspect_ratio: 视频宽高比
-            start_media_id: 起始帧mediaId
-            end_media_id: 结束帧mediaId
-            user_paygate_tier: 用户等级
+            aspect_ratio: Video aspect ratio
+            start_media_id: Start frame mediaId
+            end_media_id: End frame mediaId
+            user_paygate_tier: User tier
 
         Returns:
-            同 generate_video_text
+            Same as generate_video_text
         """
         url = f"{self.api_base_url}/video:batchAsyncGenerateVideoStartAndEndImage"
 
-        # 获取 reCAPTCHA token
+        # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
         scene_id = str(uuid.uuid4())
@@ -557,23 +557,23 @@ class FlowClient:
         start_media_id: str,
         user_paygate_tier: str = "PAYGATE_TIER_ONE"
     ) -> dict:
-        """仅首帧生成视频,返回task_id
+        """Start frame only video generation, return task_id
 
         Args:
             at: Access Token
-            project_id: 项目ID
-            prompt: 提示词
-            model_key: veo_3_1_i2v_s_fast_fl等
-            aspect_ratio: 视频宽高比
-            start_media_id: 起始帧mediaId
-            user_paygate_tier: 用户等级
+            project_id: Project ID
+            prompt: Prompt text
+            model_key: veo_3_1_i2v_s_fast_fl etc.
+            aspect_ratio: Video aspect ratio
+            start_media_id: Start frame mediaId
+            user_paygate_tier: User tier
 
         Returns:
-            同 generate_video_text
+            Same as generate_video_text
         """
         url = f"{self.api_base_url}/video:batchAsyncGenerateVideoStartAndEndImage"
 
-        # 获取 reCAPTCHA token
+        # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
         scene_id = str(uuid.uuid4())
@@ -596,7 +596,7 @@ class FlowClient:
                 "startImage": {
                     "mediaId": start_media_id
                 },
-                # 注意: 没有endImage字段,只用首帧
+                # Note: No endImage field, only start frame used
                 "metadata": {
                     "sceneId": scene_id
                 }
@@ -613,21 +613,21 @@ class FlowClient:
 
         return result
 
-    # ========== 任务轮询 (使用AT) ==========
+    # ========== Task Polling (using AT) ==========
 
     async def check_video_status(self, at: str, operations: List[Dict]) -> dict:
-        """查询视频生成状态
+        """Check video generation status
 
         Args:
             at: Access Token
-            operations: 操作列表 [{"operation": {"name": "task_id"}, "sceneId": "...", "status": "..."}]
+            operations: Operation list [{"operation": {"name": "task_id"}, "sceneId": "...", "status": "..."}]
 
         Returns:
             {
                 "operations": [{
                     "operation": {
                         "name": "task_id",
-                        "metadata": {...}  # 完成时包含视频信息
+                        "metadata": {...}  # Includes video info when complete
                     },
                     "status": "MEDIA_GENERATION_STATUS_SUCCESSFUL"
                 }]
@@ -649,14 +649,14 @@ class FlowClient:
 
         return result
 
-    # ========== 媒体删除 (使用ST) ==========
+    # ========== Media Deletion (using ST) ==========
 
     async def delete_media(self, st: str, media_names: List[str]):
-        """删除媒体
+        """Delete media
 
         Args:
             st: Session Token
-            media_names: 媒体ID列表
+            media_names: Media ID list
         """
         url = f"{self.labs_base_url}/trpc/media.deleteMedia"
         json_data = {
@@ -673,21 +673,21 @@ class FlowClient:
             st_token=st
         )
 
-    # ========== 辅助方法 ==========
+    # ========== Helper Methods ==========
 
     def _generate_session_id(self) -> str:
-        """生成sessionId: ;timestamp"""
+        """Generate sessionId: ;timestamp"""
         return f";{int(time.time() * 1000)}"
 
     def _generate_scene_id(self) -> str:
-        """生成sceneId: UUID"""
+        """Generate sceneId: UUID"""
         return str(uuid.uuid4())
 
     async def _get_recaptcha_token(self, project_id: str) -> Optional[str]:
-        """获取reCAPTCHA token - 支持两种方式"""
+        """Get reCAPTCHA token - Supports two methods"""
         captcha_method = config.captcha_method
 
-        # 恒定浏览器打码
+        # Permanent browser captcha
         if captcha_method == "personal":
             try:
                 from .browser_captcha_personal import BrowserCaptchaService
@@ -696,7 +696,7 @@ class FlowClient:
             except Exception as e:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")
                 return None
-        # 无头浏览器打码
+        # Headless browser captcha
         elif captcha_method == "browser":
             try:
                 from .browser_captcha import BrowserCaptchaService
@@ -706,7 +706,7 @@ class FlowClient:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")
                 return None
         else:
-            # YesCaptcha打码
+            # YesCaptcha captcha
             client_key = config.yescaptcha_api_key
             if not client_key:
                 debug_logger.log_info("[reCAPTCHA] API key not configured, skipping")

@@ -18,7 +18,7 @@ class TokenManager:
         self._lock = asyncio.Lock()
 
     # ========== Token CRUD ==========
-
+ 
     async def get_all_tokens(self) -> List[Token]:
         """Get all tokens"""
         return await self.db.get_all_tokens()
@@ -46,7 +46,7 @@ class TokenManager:
         """Disable a token"""
         await self.db.update_token(token_id, is_active=False)
 
-    # ========== Token添加 (支持Project创建) ==========
+    # ========== Token addition (Supports project creation) ==========
 
     async def add_token(
         self,
@@ -62,24 +62,24 @@ class TokenManager:
         """Add a new token
 
         Args:
-            st: Session Token (必需)
-            project_id: 项目ID (可选,如果提供则直接使用,不创建新项目)
-            project_name: 项目名称 (可选,如果不提供则自动生成)
-            remark: 备注
-            image_enabled: 是否启用图片生成
-            video_enabled: 是否启用视频生成
-            image_concurrency: 图片并发限制
-            video_concurrency: 视频并发限制
+            st: Session Token (Required)
+            project_id: Project ID (Optional, if provided then used directly, no new project created)
+            project_name: Project name (Optional, if not provided it is auto-generated)
+            remark: Remark
+            image_enabled: Whether to enable image generation
+            video_enabled: Whether to enable video generation
+            image_concurrency: Image concurrency limit
+            video_concurrency: Video concurrency limit
 
         Returns:
             Token object
         """
-        # Step 1: 检查ST是否已存在
+        # Step 1: Check if ST already exists
         existing_token = await self.db.get_token_by_st(st)
         if existing_token:
-            raise ValueError(f"Token 已存在（邮箱: {existing_token.email}）")
+            raise ValueError(f"Token already exists (Email: {existing_token.email})")
 
-        # Step 2: 使用ST转换AT
+        # Step 2: Convert ST to AT using Flow client
         debug_logger.log_info(f"[ADD_TOKEN] Converting ST to AT...")
         try:
             result = await self.flow_client.st_to_at(st)
@@ -89,7 +89,7 @@ class TokenManager:
             email = user_info.get("email", "")
             name = user_info.get("name", email.split("@")[0] if email else "")
 
-            # 解析过期时间
+            # Parse expiration time
             at_expires = None
             if expires:
                 try:
@@ -98,9 +98,9 @@ class TokenManager:
                     pass
 
         except Exception as e:
-            raise ValueError(f"ST转AT失败: {str(e)}")
+            raise ValueError(f"ST to AT conversion failed: {str(e)}")
 
-        # Step 3: 查询余额
+        # Step 3: Check balance
         try:
             credits_result = await self.flow_client.get_credits(at)
             credits = credits_result.get("credits", 0)
@@ -109,18 +109,18 @@ class TokenManager:
             credits = 0
             user_paygate_tier = None
 
-        # Step 4: 处理Project ID和名称
+        # Step 4: Handle Project ID and name
         if project_id:
-            # 用户提供了project_id,直接使用
+            # User provided project_id, use it directly
             debug_logger.log_info(f"[ADD_TOKEN] Using provided project_id: {project_id}")
             if not project_name:
-                # 如果没有提供project_name,生成一个
+                # If project_name is not provided, generate one
                 now = datetime.now()
                 project_name = now.strftime("%b %d - %H:%M")
         else:
-            # 用户没有提供project_id,需要创建新项目
+            # User didn't provide project_id, need to create new project
             if not project_name:
-                # 自动生成项目名称
+                # Auto-generate project name
                 now = datetime.now()
                 project_name = now.strftime("%b %d - %H:%M")
 
@@ -128,9 +128,9 @@ class TokenManager:
                 project_id = await self.flow_client.create_project(st, project_name)
                 debug_logger.log_info(f"[ADD_TOKEN] Created new project: {project_name} (ID: {project_id})")
             except Exception as e:
-                raise ValueError(f"创建项目失败: {str(e)}")
+                raise ValueError(f"Failed to create project: {str(e)}")
 
-        # Step 5: 创建Token对象
+        # Step 5: Create Token object
         token = Token(
             st=st,
             at=at,
@@ -149,11 +149,11 @@ class TokenManager:
             video_concurrency=video_concurrency
         )
 
-        # Step 6: 保存到数据库
+        # Step 6: Save to database
         token_id = await self.db.add_token(token)
         token.id = token_id
 
-        # Step 7: 保存Project到数据库
+        # Step 7: Save Project to database
         project = Project(
             project_id=project_id,
             token_id=token_id,
@@ -179,9 +179,9 @@ class TokenManager:
         image_concurrency: Optional[int] = None,
         video_concurrency: Optional[int] = None
     ):
-        """Update token (支持修改project_id和project_name)
+        """Update token (Supports modifying project_id and project_name)
 
-        当用户编辑保存token时，如果token未过期，自动清空429禁用状态
+        When user edits and saves token, if token is not expired, automatically clear 429 disabled status
         """
         update_fields = {}
 
@@ -206,10 +206,10 @@ class TokenManager:
         if video_concurrency is not None:
             update_fields["video_concurrency"] = video_concurrency
 
-        # 检查token是否因429被禁用，如果是且未过期，则清空429状态
+        # Check if token is disabled due to 429, if so and not expired, clear 429 status
         token = await self.db.get_token(token_id)
         if token and token.ban_reason == "429_rate_limit":
-            # 检查token是否过期
+            # Check if token is expired
             is_expired = False
             if token.at_expires:
                 now = datetime.now(timezone.utc)
@@ -219,19 +219,19 @@ class TokenManager:
                     at_expires_aware = token.at_expires
                 is_expired = at_expires_aware <= now
 
-            # 如果未过期，清空429禁用状态
+            # If not expired, clear 429 disabled status
             if not is_expired:
-                debug_logger.log_info(f"[UPDATE_TOKEN] Token {token_id} 编辑保存，清空429禁用状态")
+                debug_logger.log_info(f"[UPDATE_TOKEN] Token {token_id} edited and saved, clearing 429 disabled status")
                 update_fields["ban_reason"] = None
                 update_fields["banned_at"] = None
 
         if update_fields:
             await self.db.update_token(token_id, **update_fields)
 
-    # ========== AT自动刷新逻辑 (核心) ==========
+    # ========== AT Auto-refresh Logic (Core) ==========
 
     async def is_at_valid(self, token_id: int) -> bool:
-        """检查AT是否有效,如果无效或即将过期则自动刷新
+        """Check if AT is valid, automatically refresh if invalid or about to expire
 
         Returns:
             True if AT is valid or refreshed successfully
@@ -241,19 +241,19 @@ class TokenManager:
         if not token:
             return False
 
-        # 如果AT不存在,需要刷新
+        # If AT doesn't exist, need to refresh
         if not token.at:
-            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT不存在,需要刷新")
+            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT does not exist, need refresh")
             return await self._refresh_at(token_id)
 
-        # 如果没有过期时间,假设需要刷新
+        # If no expiration time, assume refresh is needed
         if not token.at_expires:
-            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT过期时间未知,尝试刷新")
+            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT expiration time unknown, attempting refresh")
             return await self._refresh_at(token_id)
 
-        # 检查是否即将过期 (提前1小时刷新)
+        # Check if about to expire (refresh 1 hour in advance)
         now = datetime.now(timezone.utc)
-        # 确保at_expires也是timezone-aware
+        # Ensure at_expires is also timezone-aware
         if token.at_expires.tzinfo is None:
             at_expires_aware = token.at_expires.replace(tzinfo=timezone.utc)
         else:
@@ -262,14 +262,14 @@ class TokenManager:
         time_until_expiry = at_expires_aware - now
 
         if time_until_expiry.total_seconds() < 3600:  # 1 hour (3600 seconds)
-            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT即将过期 (剩余 {time_until_expiry.total_seconds():.0f} 秒),需要刷新")
+            debug_logger.log_info(f"[AT_CHECK] Token {token_id}: AT about to expire ({time_until_expiry.total_seconds():.0f} seconds remaining), need refresh")
             return await self._refresh_at(token_id)
 
-        # AT有效
+        # AT is valid
         return True
 
     async def _refresh_at(self, token_id: int) -> bool:
-        """内部方法: 刷新AT
+        """Internal method: refresh AT
 
         Returns:
             True if refresh successful, False otherwise
@@ -280,14 +280,14 @@ class TokenManager:
                 return False
 
             try:
-                debug_logger.log_info(f"[AT_REFRESH] Token {token_id}: 开始刷新AT...")
+                debug_logger.log_info(f"[AT_REFRESH] Token {token_id}: Starting AT refresh...")
 
-                # 使用ST转AT
+                # Use ST to AT conversion
                 result = await self.flow_client.st_to_at(token.st)
                 new_at = result["access_token"]
                 expires = result.get("expires")
 
-                # 解析过期时间
+                # Parse expiration time
                 new_at_expires = None
                 if expires:
                     try:
@@ -295,17 +295,17 @@ class TokenManager:
                     except:
                         pass
 
-                # 更新数据库
+                # Update database
                 await self.db.update_token(
                     token_id,
                     at=new_at,
                     at_expires=new_at_expires
                 )
 
-                debug_logger.log_info(f"[AT_REFRESH] Token {token_id}: AT刷新成功")
-                debug_logger.log_info(f"  - 新过期时间: {new_at_expires}")
+                debug_logger.log_info(f"[AT_REFRESH] Token {token_id}: AT refreshed successfully")
+                debug_logger.log_info(f"  - New expiration time: {new_at_expires}")
 
-                # 同时刷新credits
+                # Also refresh credits
                 try:
                     credits_result = await self.flow_client.get_credits(new_at)
                     await self.db.update_token(
@@ -318,13 +318,13 @@ class TokenManager:
                 return True
 
             except Exception as e:
-                debug_logger.log_error(f"[AT_REFRESH] Token {token_id}: AT刷新失败 - {str(e)}")
-                # 刷新失败,禁用Token
+                debug_logger.log_error(f"[AT_REFRESH] Token {token_id}: AT refresh failed - {str(e)}")
+                # Refresh failed, disable Token
                 await self.disable_token(token_id)
                 return False
 
     async def ensure_project_exists(self, token_id: int) -> str:
-        """确保Token有可用的Project
+        """Ensure token has an available Project
 
         Returns:
             project_id
@@ -333,11 +333,11 @@ class TokenManager:
         if not token:
             raise ValueError("Token not found")
 
-        # 如果已有project_id,直接返回
+        # If already has project_id, return directly
         if token.current_project_id:
             return token.current_project_id
 
-        # 创建新Project
+        # Create new Project
         now = datetime.now()
         project_name = now.strftime("%b %d - %H:%M")
 
@@ -345,14 +345,14 @@ class TokenManager:
             project_id = await self.flow_client.create_project(token.st, project_name)
             debug_logger.log_info(f"[PROJECT] Created project for token {token_id}: {project_name}")
 
-            # 更新Token
+            # Update Token
             await self.db.update_token(
                 token_id,
                 current_project_id=project_id,
                 current_project_name=project_name
             )
 
-            # 保存Project到数据库
+            # Save Project to database
             project = Project(
                 project_id=project_id,
                 token_id=token_id,
@@ -365,7 +365,7 @@ class TokenManager:
         except Exception as e:
             raise ValueError(f"Failed to create project: {str(e)}")
 
-    # ========== Token使用统计 ==========
+    # ========== Token Usage Statistics ==========
 
     async def record_usage(self, token_id: int, is_video: bool = False):
         """Record token usage"""
@@ -400,12 +400,12 @@ class TokenManager:
         await self.db.reset_error_count(token_id)
 
     async def ban_token_for_429(self, token_id: int):
-        """因429错误立即禁用token
+        """Immediately disable token due to 429 error
 
         Args:
             token_id: Token ID
         """
-        debug_logger.log_warning(f"[429_BAN] 禁用Token {token_id} (原因: 429 Rate Limit)")
+        debug_logger.log_warning(f"[429_BAN] Disabling Token {token_id} (Reason: 429 Rate Limit)")
         await self.db.update_token(
             token_id,
             is_active=False,
@@ -414,54 +414,54 @@ class TokenManager:
         )
 
     async def auto_unban_429_tokens(self):
-        """自动解禁因429被禁用的token
+        """Automatically unban tokens disabled due to 429
 
-        规则:
-        - 距离禁用时间12小时后自动解禁
-        - 仅解禁未过期的token
-        - 仅解禁因429被禁用的token
+        Rules:
+        - Automatically unban 12 hours after disabling
+        - Only unban tokens that have not expired
+        - Only unban tokens disabled due to 429
         """
         all_tokens = await self.db.get_all_tokens()
         now = datetime.now(timezone.utc)
 
         for token in all_tokens:
-            # 跳过非429禁用的token
+            # Skip tokens not disabled by 429
             if token.ban_reason != "429_rate_limit":
                 continue
 
-            # 跳过未禁用的token
+            # Skip tokens that are already active
             if token.is_active:
                 continue
 
-            # 跳过没有禁用时间的token
+            # Skip tokens without a ban time
             if not token.banned_at:
                 continue
 
-            # 检查token是否已过期
+            # Check if token has already expired
             if token.at_expires:
-                # 确保时区一致
+                # Ensure timezone consistency
                 if token.at_expires.tzinfo is None:
                     at_expires_aware = token.at_expires.replace(tzinfo=timezone.utc)
                 else:
                     at_expires_aware = token.at_expires
 
-                # 如果已过期，跳过
+                # If already expired, skip
                 if at_expires_aware <= now:
-                    debug_logger.log_info(f"[AUTO_UNBAN] Token {token.id} 已过期，跳过解禁")
+                    debug_logger.log_info(f"[AUTO_UNBAN] Token {token.id} has expired, skipping unban")
                     continue
 
-            # 确保banned_at时区一致
+            # Ensure banned_at timezone consistency
             if token.banned_at.tzinfo is None:
                 banned_at_aware = token.banned_at.replace(tzinfo=timezone.utc)
             else:
                 banned_at_aware = token.banned_at
 
-            # 检查是否已过12小时
+            # Check if 12 hours have passed
             time_since_ban = now - banned_at_aware
-            if time_since_ban.total_seconds() >= 12 * 3600:  # 12小时
+            if time_since_ban.total_seconds() >= 12 * 3600:  # 12 hours
                 debug_logger.log_info(
-                    f"[AUTO_UNBAN] 解禁Token {token.id} (禁用时间: {banned_at_aware}, "
-                    f"已过 {time_since_ban.total_seconds() / 3600:.1f} 小时)"
+                    f"[AUTO_UNBAN] Unbanning Token {token.id} (Banned at: {banned_at_aware}, "
+                    f"{time_since_ban.total_seconds() / 3600:.1f} hours passed)"
                 )
                 await self.db.update_token(
                     token.id,
@@ -469,13 +469,13 @@ class TokenManager:
                     ban_reason=None,
                     banned_at=None
                 )
-                # 重置错误计数
+                # Reset error count
                 await self.db.reset_error_count(token.id)
 
-    # ========== 余额刷新 ==========
+    # ========== Balance Refresh ==========
 
     async def refresh_credits(self, token_id: int) -> int:
-        """刷新Token余额
+        """Refresh token balance
 
         Returns:
             credits
@@ -484,18 +484,18 @@ class TokenManager:
         if not token:
             return 0
 
-        # 确保AT有效
+        # Ensure AT is valid
         if not await self.is_at_valid(token_id):
             return 0
 
-        # 重新获取token (AT可能已刷新)
+        # Re-get token (AT might have been refreshed)
         token = await self.db.get_token(token_id)
 
         try:
             result = await self.flow_client.get_credits(token.at)
             credits = result.get("credits", 0)
 
-            # 更新数据库
+            # Update database
             await self.db.update_token(token_id, credits=credits)
 
             return credits

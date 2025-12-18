@@ -8,12 +8,12 @@ class Token(BaseModel):
     """Token model for Flow2API"""
     id: Optional[int] = None
 
-    # 认证信息 (核心)
+    # Authentication information (Core)
     st: str  # Session Token (__Secure-next-auth.session-token)
-    at: Optional[str] = None  # Access Token (从ST转换而来)
-    at_expires: Optional[datetime] = None  # AT过期时间
+    at: Optional[str] = None  # Access Token (Converted from ST)
+    at_expires: Optional[datetime] = None  # AT expiration time
 
-    # 基础信息
+    # Basic information 
     email: str
     name: Optional[str] = ""
     remark: Optional[str] = None
@@ -22,34 +22,34 @@ class Token(BaseModel):
     last_used_at: Optional[datetime] = None
     use_count: int = 0
 
-    # VideoFX特有字段
-    credits: int = 0  # 剩余credits
+    # VideoFX specific fields
+    credits: int = 0  # Remaining credits
     user_paygate_tier: Optional[str] = None  # PAYGATE_TIER_ONE
 
-    # 项目管理
-    current_project_id: Optional[str] = None  # 当前使用的项目UUID
-    current_project_name: Optional[str] = None  # 项目名称
+    # Project management
+    current_project_id: Optional[str] = None  # UUID of the current project
+    current_project_name: Optional[str] = None  # Project name
 
-    # 功能开关
+    # Feature switches
     image_enabled: bool = True
     video_enabled: bool = True
 
-    # 并发限制
-    image_concurrency: int = -1  # -1表示无限制
-    video_concurrency: int = -1  # -1表示无限制
+    # Concurrency limit
+    image_concurrency: int = -1  # -1 means unlimited
+    video_concurrency: int = -1  # -1 means unlimited
 
-    # 429禁用相关
-    ban_reason: Optional[str] = None  # 禁用原因: "429_rate_limit" 或 None
-    banned_at: Optional[datetime] = None  # 禁用时间
+    # 429 Ban related
+    ban_reason: Optional[str] = None  # Ban reason: "429_rate_limit" or None
+    banned_at: Optional[datetime] = None  # Ban time
 
 
 class Project(BaseModel):
     """Project model for VideoFX"""
     id: Optional[int] = None
-    project_id: str  # VideoFX项目UUID
-    token_id: int  # 关联的Token ID
-    project_name: str  # 项目名称
-    tool_name: str = "PINHOLE"  # 工具名称,固定为PINHOLE
+    project_id: str  # VideoFX project UUID
+    token_id: int  # Associated Token ID
+    project_name: str  # Project name
+    tool_name: str = "PINHOLE"  # Tool name, fixed to PINHOLE
     is_active: bool = True
     created_at: Optional[datetime] = None
 
@@ -63,19 +63,19 @@ class TokenStats(BaseModel):
     error_count: int = 0  # Historical total errors (never reset)
     last_success_at: Optional[datetime] = None
     last_error_at: Optional[datetime] = None
-    # 今日统计
+    # Daily statistics
     today_image_count: int = 0
     today_video_count: int = 0
     today_error_count: int = 0
     today_date: Optional[str] = None
-    # 连续错误计数 (用于自动禁用判断)
+    # Consecutive error count (used for auto-disable judgment)
     consecutive_error_count: int = 0
 
 
 class Task(BaseModel):
     """Generation task"""
     id: Optional[int] = None
-    task_id: str  # Flow API返回的operation name
+    task_id: str  # operation name returned by Flow API
     token_id: int
     model: str
     prompt: str
@@ -83,7 +83,7 @@ class Task(BaseModel):
     progress: int = 0  # 0-100
     result_urls: Optional[List[str]] = None
     error_message: Optional[str] = None
-    scene_id: Optional[str] = None  # Flow API的sceneId
+    scene_id: Optional[str] = None  # sceneId from Flow API
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
@@ -147,13 +147,13 @@ class DebugConfig(BaseModel):
 class CaptchaConfig(BaseModel):
     """Captcha configuration"""
     id: int = 1
-    captcha_method: str = "browser"  # yescaptcha 或 browser
+    captcha_method: str = "browser"  # yescaptcha or browser
     yescaptcha_api_key: str = ""
     yescaptcha_base_url: str = "https://api.yescaptcha.com"
     website_key: str = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV"
     page_action: str = "FLOW_GENERATION"
-    browser_proxy_enabled: bool = False  # 浏览器打码是否启用代理
-    browser_proxy_url: Optional[str] = None  # 浏览器打码代理URL
+    browser_proxy_enabled: bool = False  # Whether to use proxy for browser captcha
+    browser_proxy_url: Optional[str] = None  # Browser captcha proxy URL
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

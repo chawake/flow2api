@@ -1,4 +1,4 @@
-"""API routes - OpenAI compatible endpoints"""
+"""API Routes - OpenAI Compatible Endpoints"""
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from typing import List, Optional
@@ -27,11 +27,11 @@ def set_generation_handler(handler: GenerationHandler):
 
 async def retrieve_image_data(url: str) -> Optional[bytes]:
     """
-    智能获取图片数据：
-    1. 优先检查是否为本地 /tmp/ 缓存文件，如果是则直接读取磁盘
-    2. 如果本地不存在或是外部链接，则进行网络下载
+    Intelligently retrieve image data:
+    1. First check if it is a local /tmp/ cache file; if so, read directly from disk.
+    2. If it doesn't exist locally or is an external link, perform network download.
     """
-    # 优先尝试本地读取
+    # Prefer local reading
     try:
         if "/tmp/" in url and generation_handler and generation_handler.file_cache:
             path = urlparse(url).path
@@ -43,18 +43,18 @@ async def retrieve_image_data(url: str) -> Optional[bytes]:
                 if data:
                     return data
     except Exception as e:
-        debug_logger.log_warning(f"[CONTEXT] 本地缓存读取失败: {str(e)}")
+        debug_logger.log_warning(f"[CONTEXT] Local cache read failed: {str(e)}")
 
-    # 回退逻辑：网络下载
+    # Fallback logic: network download
     try:
         async with AsyncSession() as session:
             response = await session.get(url, timeout=30, impersonate="chrome110", verify=False)
             if response.status_code == 200:
                 return response.content
             else:
-                debug_logger.log_warning(f"[CONTEXT] 图片下载失败，状态码: {response.status_code}")
+                debug_logger.log_warning(f"[CONTEXT] Image download failed, status code: {response.status_code}")
     except Exception as e:
-        debug_logger.log_error(f"[CONTEXT] 图片下载异常: {str(e)}")
+        debug_logger.log_error(f"[CONTEXT] Image download error: {str(e)}")
 
     return None
 
@@ -65,7 +65,7 @@ async def list_models(api_key: str = Depends(verify_api_key_header)):
     models = []
 
     for model_id, config in MODEL_CONFIG.items():
-        description = f"{config['type'].capitalize()} generation"
+        description = f"{config['type'].capitalize()} generation model"
         if config['type'] == 'image':
             description += f" - {config['model_name']}"
         else:
@@ -89,11 +89,11 @@ async def create_chat_completion(
     request: ChatCompletionRequest,
     api_key: str = Depends(verify_api_key_header)
 ):
-    """Create chat completion (unified endpoint for image and video generation)"""
+    """Create chat completion (Unified interface for image/video generation)"""
     try:
         # Extract prompt from messages
         if not request.messages:
-            raise HTTPException(status_code=400, detail="Messages cannot be empty")
+            raise HTTPException(status_code=400, detail="Message content cannot be empty")
 
         last_message = request.messages[-1]
         content = last_message.content
@@ -130,16 +130,16 @@ async def create_chat_completion(
                     image_bytes = base64.b64decode(image_base64)
                     images.append(image_bytes)
 
-        # 自动参考图：仅对图片模型生效
+        # Auto reference image: only effective for image models
         model_config = MODEL_CONFIG.get(request.model)
 
         if model_config and model_config["type"] == "image" and not images and len(request.messages) > 1:
-            debug_logger.log_info(f"[CONTEXT] 开始查找历史参考图，消息数量: {len(request.messages)}")
+            debug_logger.log_info(f"[CONTEXT] Searching for historical reference images, message count: {len(request.messages)}")
 
-            # 如果当前请求没有上传图片，则尝试从历史记录中寻找最近的一张生成图
+            # If current request doesn't have an uploaded image, try to find the most recent generated image from history
             for msg in reversed(request.messages[:-1]):
                 if msg.role == "assistant" and isinstance(msg.content, str):
-                    # 匹配 Markdown 图片格式: ![...](http...)
+                    # Match Markdown image format: ![...](http...)
                     matches = re.findall(r"!\[.*?\]\((.*?)\)", msg.content)
                     if matches:
                         last_image_url = matches[-1]
@@ -149,13 +149,13 @@ async def create_chat_completion(
                                 downloaded_bytes = await retrieve_image_data(last_image_url)
                                 if downloaded_bytes and len(downloaded_bytes) > 0:
                                     images.append(downloaded_bytes)
-                                    debug_logger.log_info(f"[CONTEXT] ✅ 自动使用历史参考图: {last_image_url}")
+                                    debug_logger.log_info(f"[CONTEXT] ✅ Auto-using historical reference image: {last_image_url}")
                                     break
                                 else:
-                                    debug_logger.log_warning(f"[CONTEXT] 图片下载失败或为空，尝试下一个: {last_image_url}")
+                                    debug_logger.log_warning(f"[CONTEXT] Image download failed or empty, trying next one: {last_image_url}")
                             except Exception as e:
-                                debug_logger.log_error(f"[CONTEXT] 处理参考图时出错: {str(e)}")
-                                # 继续尝试下一个图片
+                                debug_logger.log_error(f"[CONTEXT] Error processing reference image: {str(e)}")
+                                # Continue trying next image
 
         if not prompt:
             raise HTTPException(status_code=400, detail="Prompt cannot be empty")
@@ -204,7 +204,7 @@ async def create_chat_completion(
                     # If not JSON, return as-is
                     return JSONResponse(content={"result": result})
             else:
-                raise HTTPException(status_code=500, detail="Generation failed: No response from handler")
+                raise HTTPException(status_code=500, detail="Generation failed: Handler no response")
 
     except HTTPException:
         raise

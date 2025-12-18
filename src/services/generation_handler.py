@@ -12,7 +12,7 @@ from .file_cache import FileCache
 
 # Model configuration
 MODEL_CONFIG = {
-    # 图片生成 - GEM_PIX (Gemini 2.5 Flash)
+    # Image generation - GEM_PIX (Gemini 2.5 Flash)
     "gemini-2.5-flash-image-landscape": {
         "type": "image",
         "model_name": "GEM_PIX",
@@ -24,7 +24,7 @@ MODEL_CONFIG = {
         "aspect_ratio": "IMAGE_ASPECT_RATIO_PORTRAIT"
     },
 
-    # 图片生成 - GEM_PIX_2 (Gemini 3.0 Pro)
+    # Image generation - GEM_PIX_2 (Gemini 3.0 Pro)
     "gemini-3.0-pro-image-landscape": {
         "type": "image",
         "model_name": "GEM_PIX_2",
@@ -36,7 +36,7 @@ MODEL_CONFIG = {
         "aspect_ratio": "IMAGE_ASPECT_RATIO_PORTRAIT"
     },
 
-    # 图片生成 - IMAGEN_3_5 (Imagen 4.0)
+    # Image generation - IMAGEN_3_5 (Imagen 4.0)
     "imagen-4.0-generate-preview-landscape": {
         "type": "image",
         "model_name": "IMAGEN_3_5",
@@ -48,11 +48,11 @@ MODEL_CONFIG = {
         "aspect_ratio": "IMAGE_ASPECT_RATIO_PORTRAIT"
     },
 
-    # ========== 文生视频 (T2V - Text to Video) ==========
-    # 不支持上传图片，只使用文本提示词生成
+    # ========== Text to Video (T2V) ==========
+    # No image upload supported, only text prompts for generation
 
-    # veo_3_1_t2v_fast_portrait (竖屏)
-    # 上游模型名: veo_3_1_t2v_fast_portrait
+    # veo_3_1_t2v_fast_portrait (Portrait)
+    # Upstream model name: veo_3_1_t2v_fast_portrait
     "veo_3_1_t2v_fast_portrait": {
         "type": "video",
         "video_type": "t2v",
@@ -60,8 +60,8 @@ MODEL_CONFIG = {
         "aspect_ratio": "VIDEO_ASPECT_RATIO_PORTRAIT",
         "supports_images": False
     },
-    # veo_3_1_t2v_fast_landscape (横屏)
-    # 上游模型名: veo_3_1_t2v_fast
+    # veo_3_1_t2v_fast_landscape (Landscape)
+    # Upstream model name: veo_3_1_t2v_fast
     "veo_3_1_t2v_fast_landscape": {
         "type": "video",
         "video_type": "t2v",
@@ -70,7 +70,7 @@ MODEL_CONFIG = {
         "supports_images": False
     },
 
-    # veo_2_1_fast_d_15_t2v (需要新增横竖屏)
+    # veo_2_1_fast_d_15_t2v (Landscape and Portrait)
     "veo_2_1_fast_d_15_t2v_portrait": {
         "type": "video",
         "video_type": "t2v",
@@ -86,7 +86,7 @@ MODEL_CONFIG = {
         "supports_images": False
     },
 
-    # veo_2_0_t2v (需要新增横竖屏)
+    # veo_2_0_t2v (Landscape and Portrait)
     "veo_2_0_t2v_portrait": {
         "type": "video",
         "video_type": "t2v",
@@ -102,10 +102,10 @@ MODEL_CONFIG = {
         "supports_images": False
     },
 
-    # ========== 首尾帧模型 (I2V - Image to Video) ==========
-    # 支持1-2张图片：1张作为首帧，2张作为首尾帧
+    # ========== Image to Video (I2V) ==========
+    # Support 1-2 images: 1 as start frame, 2 as start and end frames 
 
-    # veo_3_1_i2v_s_fast_fl (需要新增横竖屏)
+    # veo_3_1_i2v_s_fast_fl (Landscape and Portrait)
     "veo_3_1_i2v_s_fast_fl_portrait": {
         "type": "video",
         "video_type": "i2v",
@@ -125,7 +125,7 @@ MODEL_CONFIG = {
         "max_images": 2
     },
 
-    # veo_2_1_fast_d_15_i2v (需要新增横竖屏)
+    # veo_2_1_fast_d_15_i2v (Landscape and Portrait)
     "veo_2_1_fast_d_15_i2v_portrait": {
         "type": "video",
         "video_type": "i2v",
@@ -145,7 +145,7 @@ MODEL_CONFIG = {
         "max_images": 2
     },
 
-    # veo_2_0_i2v (需要新增横竖屏)
+    # veo_2_0_i2v (Landscape and Portrait)
     "veo_2_0_i2v_portrait": {
         "type": "video",
         "video_type": "i2v",
@@ -165,10 +165,10 @@ MODEL_CONFIG = {
         "max_images": 2
     },
 
-    # ========== 多图生成 (R2V - Reference Images to Video) ==========
-    # 支持多张图片,不限制数量
+    # ========== Reference Images to Video (R2V) ==========
+    # Supports multiple images, no quantity limit
 
-    # veo_3_0_r2v_fast (需要新增横竖屏)
+    # veo_3_0_r2v_fast (Landscape and Portrait)
     "veo_3_0_r2v_fast_portrait": {
         "type": "video",
         "video_type": "r2v",
@@ -176,7 +176,7 @@ MODEL_CONFIG = {
         "aspect_ratio": "VIDEO_ASPECT_RATIO_PORTRAIT",
         "supports_images": True,
         "min_images": 0,
-        "max_images": None  # 不限制
+        "max_images": None  # No limit
     },
     "veo_3_0_r2v_fast_landscape": {
         "type": "video",
@@ -185,13 +185,13 @@ MODEL_CONFIG = {
         "aspect_ratio": "VIDEO_ASPECT_RATIO_LANDSCAPE",
         "supports_images": True,
         "min_images": 0,
-        "max_images": None  # 不限制
+        "max_images": None  # No limit
     }
 }
 
 
 class GenerationHandler:
-    """统一生成处理器"""
+    """Unified generation handler"""
 
     def __init__(self, flow_client, token_manager, load_balancer, db, concurrency_manager, proxy_manager):
         self.flow_client = flow_client
@@ -206,14 +206,14 @@ class GenerationHandler:
         )
 
     async def check_token_availability(self, is_image: bool, is_video: bool) -> bool:
-        """检查Token可用性
+        """Check token availability
 
         Args:
-            is_image: 是否检查图片生成Token
-            is_video: 是否检查视频生成Token
+            is_image: Whether to check token for image generation
+            is_video: Whether to check token for video generation
 
         Returns:
-            True表示有可用Token, False表示无可用Token
+            True means token is available, False means no token is available
         """
         token_obj = await self.load_balancer.select_token(
             for_image_generation=is_image,
@@ -228,29 +228,29 @@ class GenerationHandler:
         images: Optional[List[bytes]] = None,
         stream: bool = False
     ) -> AsyncGenerator:
-        """统一生成入口
+        """Unified generation entry point
 
         Args:
-            model: 模型名称
-            prompt: 提示词
-            images: 图片列表 (bytes格式)
-            stream: 是否流式输出
+            model: Model name
+            prompt: Prompt
+            images: Image list (bytes format)
+            stream: Whether to stream output
         """
         start_time = time.time()
         token = None
 
-        # 1. 验证模型
+        # 1. Validate model
         if model not in MODEL_CONFIG:
-            error_msg = f"不支持的模型: {model}"
+            error_msg = f"Unsupported model: {model}"
             debug_logger.log_error(error_msg)
             yield self._create_error_response(error_msg)
             return
 
         model_config = MODEL_CONFIG[model]
         generation_type = model_config["type"]
-        debug_logger.log_info(f"[GENERATION] 开始生成 - 模型: {model}, 类型: {generation_type}, Prompt: {prompt[:50]}...")
+        debug_logger.log_info(f"[GENERATION] Starting generation - Model: {model}, Type: {generation_type}, Prompt: {prompt[:50]}...")
 
-        # 非流式模式: 只检查可用性
+        # Non-streaming mode: only check availability
         if not stream:
             is_image = (generation_type == "image")
             is_video = (generation_type == "video")
@@ -258,27 +258,27 @@ class GenerationHandler:
 
             if available:
                 if is_image:
-                    message = "所有Token可用于图片生成。请启用流式模式使用生成功能。"
+                    message = "All tokens are available for image generation. Please enable streaming mode to use generation functionality."
                 else:
-                    message = "所有Token可用于视频生成。请启用流式模式使用生成功能。"
+                    message = "All tokens are available for video generation. Please enable streaming mode to use generation functionality."
             else:
                 if is_image:
-                    message = "没有可用的Token进行图片生成"
+                    message = "No tokens available for image generation"
                 else:
-                    message = "没有可用的Token进行视频生成"
+                    message = "No tokens available for video generation"
 
             yield self._create_completion_response(message, is_availability_check=True)
             return
 
-        # 向用户展示开始信息
+        # Show start info to user
         if stream:
             yield self._create_stream_chunk(
-                f"✨ {'视频' if generation_type == 'video' else '图片'}生成任务已启动\n",
+                f"✨ {'Video' if generation_type == 'video' else 'Image'} generation task started\n",
                 role="assistant"
             )
 
-        # 2. 选择Token
-        debug_logger.log_info(f"[GENERATION] 正在选择可用Token...")
+        # 2. Select Token
+        debug_logger.log_info(f"[GENERATION] Selecting available token...")
 
         if generation_type == "image":
             token = await self.load_balancer.select_token(for_image_generation=True, model=model)
@@ -293,55 +293,55 @@ class GenerationHandler:
             yield self._create_error_response(error_msg)
             return
 
-        debug_logger.log_info(f"[GENERATION] 已选择Token: {token.id} ({token.email})")
+        debug_logger.log_info(f"[GENERATION] Token selected: {token.id} ({token.email})")
 
         try:
-            # 3. 确保AT有效
-            debug_logger.log_info(f"[GENERATION] 检查Token AT有效性...")
+            # 3. Ensure AT is valid
+            debug_logger.log_info(f"[GENERATION] Checking token AT validity...")
             if stream:
-                yield self._create_stream_chunk("初始化生成环境...\n")
+                yield self._create_stream_chunk("Initializing generation environment...\n")
 
             if not await self.token_manager.is_at_valid(token.id):
-                error_msg = "Token AT无效或刷新失败"
+                error_msg = "Token AT invalid or refresh failed"
                 debug_logger.log_error(f"[GENERATION] {error_msg}")
                 if stream:
                     yield self._create_stream_chunk(f"❌ {error_msg}\n")
                 yield self._create_error_response(error_msg)
                 return
 
-            # 重新获取token (AT可能已刷新)
+            # Re-get token (AT may have refreshed)
             token = await self.token_manager.get_token(token.id)
 
-            # 4. 确保Project存在
-            debug_logger.log_info(f"[GENERATION] 检查/创建Project...")
+            # 4. Ensure Project exists
+            debug_logger.log_info(f"[GENERATION] Checking/creating Project...")
 
             project_id = await self.token_manager.ensure_project_exists(token.id)
             debug_logger.log_info(f"[GENERATION] Project ID: {project_id}")
 
-            # 5. 根据类型处理
+            # 5. Handle based on type
             if generation_type == "image":
-                debug_logger.log_info(f"[GENERATION] 开始图片生成流程...")
+                debug_logger.log_info(f"[GENERATION] Starting image generation flow...")
                 async for chunk in self._handle_image_generation(
                     token, project_id, model_config, prompt, images, stream
                 ):
                     yield chunk
             else:  # video
-                debug_logger.log_info(f"[GENERATION] 开始视频生成流程...")
+                debug_logger.log_info(f"[GENERATION] Starting video generation flow...")
                 async for chunk in self._handle_video_generation(
                     token, project_id, model_config, prompt, images, stream
                 ):
                     yield chunk
 
-            # 6. 记录使用
+            # 6. Record usage
             is_video = (generation_type == "video")
             await self.token_manager.record_usage(token.id, is_video=is_video)
 
-            # 重置错误计数 (请求成功时清空连续错误计数)
+            # Reset error count (Clear consecutive error count on successful request)
             await self.token_manager.record_success(token.id)
 
-            debug_logger.log_info(f"[GENERATION] ✅ 生成成功完成")
+            debug_logger.log_info(f"[GENERATION] ✅ Generation completed successfully")
 
-            # 7. 记录成功日志
+            # 7. Record success log
             duration = time.time() - start_time
             await self._log_request(
                 token.id,
@@ -353,20 +353,20 @@ class GenerationHandler:
             )
 
         except Exception as e:
-            error_msg = f"生成失败: {str(e)}"
+            error_msg = f"Generation failed: {str(e)}"
             debug_logger.log_error(f"[GENERATION] ❌ {error_msg}")
             if stream:
                 yield self._create_stream_chunk(f"❌ {error_msg}\n")
             if token:
-                # 检测429错误，立即禁用token
+                # Detect 429 error, immediately disable token
                 if "429" in str(e) or "HTTP Error 429" in str(e):
-                    debug_logger.log_warning(f"[429_BAN] Token {token.id} 遇到429错误，立即禁用")
+                    debug_logger.log_warning(f"[429_BAN] Token {token.id} encountered 429 error, disabling immediately")
                     await self.token_manager.ban_token_for_429(token.id)
                 else:
                     await self.token_manager.record_error(token.id)
             yield self._create_error_response(error_msg)
 
-            # 记录失败日志
+            # Record failure log
             duration = time.time() - start_time
             await self._log_request(
                 token.id if token else None,
@@ -378,11 +378,11 @@ class GenerationHandler:
             )
 
     def _get_no_token_error_message(self, generation_type: str) -> str:
-        """获取无可用Token时的详细错误信息"""
+        """Get detailed error message when no token is available"""
         if generation_type == "image":
-            return "没有可用的Token进行图片生成。所有Token都处于禁用、冷却、锁定或已过期状态。"
+            return "No tokens available for image generation. All tokens are disabled, in cooldown, locked, or expired."
         else:
-            return "没有可用的Token进行视频生成。所有Token都处于禁用、冷却、配额耗尽或已过期状态。"
+            return "No tokens available for video generation. All tokens are disabled, in cooldown, quota exhausted, or expired."
 
     async def _handle_image_generation(
         self,
@@ -393,22 +393,22 @@ class GenerationHandler:
         images: Optional[List[bytes]],
         stream: bool
     ) -> AsyncGenerator:
-        """处理图片生成 (同步返回)"""
+        """Process image generation (Synchronous return)"""
 
-        # 获取并发槽位
+        # Acquire concurrency slot
         if self.concurrency_manager:
             if not await self.concurrency_manager.acquire_image(token.id):
-                yield self._create_error_response("图片并发限制已达上限")
+                yield self._create_error_response("Image concurrency limit reached")
                 return
 
         try:
-            # 上传图片 (如果有)
+            # Upload images (if any)
             image_inputs = []
             if images and len(images) > 0:
                 if stream:
-                    yield self._create_stream_chunk(f"上传 {len(images)} 张参考图片...\n")
+                    yield self._create_stream_chunk(f"Uploading {len(images)} reference images...\n")
 
-                # 支持多图输入
+                # Support multi-image input
                 for idx, image_bytes in enumerate(images):
                     media_id = await self.flow_client.upload_image(
                         token.at,
@@ -420,11 +420,11 @@ class GenerationHandler:
                         "imageInputType": "IMAGE_INPUT_TYPE_REFERENCE"
                     })
                     if stream:
-                        yield self._create_stream_chunk(f"已上传第 {idx + 1}/{len(images)} 张图片\n")
+                        yield self._create_stream_chunk(f"Uploaded {idx + 1}/{len(images)} images\n")
 
-            # 调用生成API
+            # Call generation API
             if stream:
-                yield self._create_stream_chunk("正在生成图片...\n")
+                yield self._create_stream_chunk("Generating image...\n")
 
             result = await self.flow_client.generate_image(
                 at=token.at,
@@ -435,35 +435,35 @@ class GenerationHandler:
                 image_inputs=image_inputs
             )
 
-            # 提取URL
+            # Extract URL
             media = result.get("media", [])
             if not media:
-                yield self._create_error_response("生成结果为空")
+                yield self._create_error_response("Generation result is empty")
                 return
 
             image_url = media[0]["image"]["generatedImage"]["fifeUrl"]
 
-            # 缓存图片 (如果启用)
+            # Cache image (if enabled)
             local_url = image_url
             if config.cache_enabled:
                 try:
                     if stream:
-                        yield self._create_stream_chunk("缓存图片中...\n")
+                        yield self._create_stream_chunk("Caching image...\n")
                     cached_filename = await self.file_cache.download_and_cache(image_url, "image")
                     local_url = f"{self._get_base_url()}/tmp/{cached_filename}"
                     if stream:
-                        yield self._create_stream_chunk("✅ 图片缓存成功,准备返回缓存地址...\n")
+                        yield self._create_stream_chunk("✅ Image cached successfully, preparing to return cached URL...\n")
                 except Exception as e:
                     debug_logger.log_error(f"Failed to cache image: {str(e)}")
-                    # 缓存失败不影响结果返回,使用原始URL
+                    # Cache failure does not affect result return, use original URL
                     local_url = image_url
                     if stream:
-                        yield self._create_stream_chunk(f"⚠️ 缓存失败: {str(e)}\n正在返回源链接...\n")
+                        yield self._create_stream_chunk(f"⚠️ Cache failed: {str(e)}\nReturning source link...\n")
             else:
                 if stream:
-                    yield self._create_stream_chunk("缓存已关闭,正在返回源链接...\n")
+                    yield self._create_stream_chunk("Cache disabled, returning source link...\n")
 
-            # 返回结果
+            # Return result
             if stream:
                 yield self._create_stream_chunk(
                     f"![Generated Image]({local_url})",
@@ -471,12 +471,12 @@ class GenerationHandler:
                 )
             else:
                 yield self._create_completion_response(
-                    local_url,  # 直接传URL,让方法内部格式化
+                    local_url,  # Pass URL directly, let method format internally
                     media_type="image"
                 )
 
         finally:
-            # 释放并发槽位
+            # Release concurrency slot
             if self.concurrency_manager:
                 await self.concurrency_manager.release_image(token.id)
 
@@ -489,83 +489,83 @@ class GenerationHandler:
         images: Optional[List[bytes]],
         stream: bool
     ) -> AsyncGenerator:
-        """处理视频生成 (异步轮询)"""
+        """Process video generation (Asynchronous polling)"""
 
-        # 获取并发槽位
+        # Acquire concurrency slot
         if self.concurrency_manager:
             if not await self.concurrency_manager.acquire_video(token.id):
-                yield self._create_error_response("视频并发限制已达上限")
+                yield self._create_error_response("Video concurrency limit reached")
                 return
 
         try:
-            # 获取模型类型和配置
+            # Get model type and config
             video_type = model_config.get("video_type")
             supports_images = model_config.get("supports_images", False)
             min_images = model_config.get("min_images", 0)
             max_images = model_config.get("max_images", 0)
 
-            # 图片数量
+            # Image count
             image_count = len(images) if images else 0
 
-            # ========== 验证和处理图片 ==========
+            # ========== Validate and process images ==========
 
-            # T2V: 文生视频 - 不支持图片
+            # T2V: Text to Video - No image support
             if video_type == "t2v":
                 if image_count > 0:
                     if stream:
-                        yield self._create_stream_chunk("⚠️ 文生视频模型不支持上传图片,将忽略图片仅使用文本提示词生成\n")
-                    debug_logger.log_warning(f"[T2V] 模型 {model_config['model_key']} 不支持图片,已忽略 {image_count} 张图片")
-                images = None  # 清空图片
+                        yield self._create_stream_chunk("⚠️ T2V model does not support image upload, ignoring images and using text prompt only\n")
+                    debug_logger.log_warning(f"[T2V] Model {model_config['model_key']} does not support images, ignored {image_count} images")
+                images = None  # Clear images
                 image_count = 0
 
-            # I2V: 首尾帧模型 - 需要1-2张图片
+            # I2V: Image to Video - Needs 1-2 images
             elif video_type == "i2v":
                 if image_count < min_images or image_count > max_images:
-                    error_msg = f"❌ 首尾帧模型需要 {min_images}-{max_images} 张图片,当前提供了 {image_count} 张"
+                    error_msg = f"❌ I2V model needs {min_images}-{max_images} images, {image_count} provided"
                     if stream:
                         yield self._create_stream_chunk(f"{error_msg}\n")
                     yield self._create_error_response(error_msg)
                     return
 
-            # R2V: 多图生成 - 支持多张图片,不限制数量
+            # R2V: Reference Images to Video - Supports multiple images, no limit
             elif video_type == "r2v":
-                # 不再限制最大图片数量
+                # No longer limit maximum image count
                 pass
 
-            # ========== 上传图片 ==========
+            # ========== Upload images ==========
             start_media_id = None
             end_media_id = None
             reference_images = []
 
-            # I2V: 首尾帧处理
+            # I2V: Process start/end frames
             if video_type == "i2v" and images:
                 if image_count == 1:
-                    # 只有1张图: 仅作为首帧
+                    # 1 image: Only as start frame
                     if stream:
-                        yield self._create_stream_chunk("上传首帧图片...\n")
+                        yield self._create_stream_chunk("Uploading start frame image...\n")
                     start_media_id = await self.flow_client.upload_image(
                         token.at, images[0], model_config["aspect_ratio"]
                     )
-                    debug_logger.log_info(f"[I2V] 仅上传首帧: {start_media_id}")
+                    debug_logger.log_info(f"[I2V] Only uploaded start frame: {start_media_id}")
 
                 elif image_count == 2:
-                    # 2张图: 首帧+尾帧
+                    # 2 images: Start frame + end frame
                     if stream:
-                        yield self._create_stream_chunk("上传首帧和尾帧图片...\n")
+                        yield self._create_stream_chunk("Uploading start and end frame images...\n")
                     start_media_id = await self.flow_client.upload_image(
                         token.at, images[0], model_config["aspect_ratio"]
                     )
                     end_media_id = await self.flow_client.upload_image(
                         token.at, images[1], model_config["aspect_ratio"]
                     )
-                    debug_logger.log_info(f"[I2V] 上传首尾帧: {start_media_id}, {end_media_id}")
+                    debug_logger.log_info(f"[I2V] Uploaded start/end frames: {start_media_id}, {end_media_id}")
 
-            # R2V: 多图处理
+            # R2V: Process multiple images
             elif video_type == "r2v" and images:
                 if stream:
-                    yield self._create_stream_chunk(f"上传 {image_count} 张参考图片...\n")
+                    yield self._create_stream_chunk(f"Uploading {image_count} reference images...\n")
 
-                for idx, img in enumerate(images):  # 上传所有图片,不限制数量
+                for idx, img in enumerate(images):  # Upload all images, no limit
                     media_id = await self.flow_client.upload_image(
                         token.at, img, model_config["aspect_ratio"]
                     )
@@ -573,16 +573,16 @@ class GenerationHandler:
                         "imageUsageType": "IMAGE_USAGE_TYPE_ASSET",
                         "mediaId": media_id
                     })
-                debug_logger.log_info(f"[R2V] 上传了 {len(reference_images)} 张参考图片")
+                debug_logger.log_info(f"[R2V] Uploaded {len(reference_images)} reference images")
 
-            # ========== 调用生成API ==========
+            # ========== Call generation API ==========
             if stream:
-                yield self._create_stream_chunk("提交视频生成任务...\n")
+                yield self._create_stream_chunk("Submitting video generation task...\n")
 
-            # I2V: 首尾帧生成
+            # I2V: Start/end frame generation
             if video_type == "i2v" and start_media_id:
                 if end_media_id:
-                    # 有首尾帧
+                    # With start and end frames
                     result = await self.flow_client.generate_video_start_end(
                         at=token.at,
                         project_id=project_id,
@@ -594,7 +594,7 @@ class GenerationHandler:
                         user_paygate_tier=token.user_paygate_tier or "PAYGATE_TIER_ONE"
                     )
                 else:
-                    # 只有首帧
+                    # Only start frame
                     result = await self.flow_client.generate_video_start_image(
                         at=token.at,
                         project_id=project_id,
@@ -605,7 +605,7 @@ class GenerationHandler:
                         user_paygate_tier=token.user_paygate_tier or "PAYGATE_TIER_ONE"
                     )
 
-            # R2V: 多图生成
+            # R2V: Reference images generation
             elif video_type == "r2v" and reference_images:
                 result = await self.flow_client.generate_video_reference_images(
                     at=token.at,
@@ -617,7 +617,7 @@ class GenerationHandler:
                     user_paygate_tier=token.user_paygate_tier or "PAYGATE_TIER_ONE"
                 )
 
-            # T2V 或 R2V无图: 纯文本生成
+            # T2V or R2V with no images: Pure text generation
             else:
                 result = await self.flow_client.generate_video_text(
                     at=token.at,
@@ -628,17 +628,17 @@ class GenerationHandler:
                     user_paygate_tier=token.user_paygate_tier or "PAYGATE_TIER_ONE"
                 )
 
-            # 获取task_id和operations
+            # Get task_id and operations
             operations = result.get("operations", [])
             if not operations:
-                yield self._create_error_response("生成任务创建失败")
+                yield self._create_error_response("Video generation task creation failed")
                 return
 
             operation = operations[0]
             task_id = operation["operation"]["name"]
             scene_id = operation.get("sceneId")
 
-            # 保存Task到数据库
+            # Save task to database
             task = Task(
                 task_id=task_id,
                 token_id=token.id,
@@ -649,15 +649,15 @@ class GenerationHandler:
             )
             await self.db.create_task(task)
 
-            # 轮询结果
+            # Poll results
             if stream:
-                yield self._create_stream_chunk(f"视频生成中...\n")
+                yield self._create_stream_chunk(f"Generating video...\n")
 
             async for chunk in self._poll_video_result(token, operations, stream):
                 yield chunk
 
         finally:
-            # 释放并发槽位
+            # Release concurrency slot
             if self.concurrency_manager:
                 await self.concurrency_manager.release_video(token.id)
 
@@ -667,7 +667,7 @@ class GenerationHandler:
         operations: List[Dict],
         stream: bool
     ) -> AsyncGenerator:
-        """轮询视频生成结果"""
+        """Poll for video generation result"""
 
         max_attempts = config.max_poll_attempts
         poll_interval = config.poll_interval
@@ -685,44 +685,44 @@ class GenerationHandler:
                 operation = checked_operations[0]
                 status = operation.get("status")
 
-                # 状态更新 - 每20秒报告一次 (poll_interval=3秒, 20秒约7次轮询)
-                progress_update_interval = 7  # 每7次轮询 = 21秒
-                if stream and attempt % progress_update_interval == 0:  # 每20秒报告一次
+                # Progress update - report every 20 seconds (poll_interval=3s, 20s about 7 polls)
+                progress_update_interval = 7  # Every 7 polls = 21 seconds
+                if stream and attempt % progress_update_interval == 0:  # Report progress every 20s
                     progress = min(int((attempt / max_attempts) * 100), 95)
-                    yield self._create_stream_chunk(f"生成进度: {progress}%\n")
+                    yield self._create_stream_chunk(f"Generation progress: {progress}%\n")
 
-                # 检查状态
+                # Check status
                 if status == "MEDIA_GENERATION_STATUS_SUCCESSFUL":
-                    # 成功
+                    # Success
                     metadata = operation["operation"].get("metadata", {})
                     video_info = metadata.get("video", {})
                     video_url = video_info.get("fifeUrl")
 
                     if not video_url:
-                        yield self._create_error_response("视频URL为空")
+                        yield self._create_error_response("Video URL is empty")
                         return
 
-                    # 缓存视频 (如果启用)
+                    # Cache video (if enabled)
                     local_url = video_url
                     if config.cache_enabled:
                         try:
                             if stream:
-                                yield self._create_stream_chunk("正在缓存视频文件...\n")
+                                yield self._create_stream_chunk("Caching video file...\n")
                             cached_filename = await self.file_cache.download_and_cache(video_url, "video")
                             local_url = f"{self._get_base_url()}/tmp/{cached_filename}"
                             if stream:
-                                yield self._create_stream_chunk("✅ 视频缓存成功,准备返回缓存地址...\n")
+                                yield self._create_stream_chunk("✅ Video cached successfully, preparing to return cached URL...\n")
                         except Exception as e:
                             debug_logger.log_error(f"Failed to cache video: {str(e)}")
-                            # 缓存失败不影响结果返回,使用原始URL
+                            # Cache failure does not affect result return, use original URL
                             local_url = video_url
                             if stream:
-                                yield self._create_stream_chunk(f"⚠️ 缓存失败: {str(e)}\n正在返回源链接...\n")
+                                yield self._create_stream_chunk(f"⚠️ Cache failed: {str(e)}\nReturning source link...\n")
                     else:
                         if stream:
-                            yield self._create_stream_chunk("缓存已关闭,正在返回源链接...\n")
+                            yield self._create_stream_chunk("Cache disabled, returning source link...\n")
 
-                    # 更新数据库
+                    # Update database
                     task_id = operation["operation"]["name"]
                     await self.db.update_task(
                         task_id,
@@ -732,7 +732,7 @@ class GenerationHandler:
                         completed_at=time.time()
                     )
 
-                    # 返回结果
+                    # Return result
                     if stream:
                         yield self._create_stream_chunk(
                             f"<video src='{local_url}' controls style='max-width:100%'></video>",
@@ -740,27 +740,27 @@ class GenerationHandler:
                         )
                     else:
                         yield self._create_completion_response(
-                            local_url,  # 直接传URL,让方法内部格式化
+                            local_url,  # Pass URL directly, let method format internally
                             media_type="video"
                         )
                     return
 
                 elif status.startswith("MEDIA_GENERATION_STATUS_ERROR"):
-                    # 失败
-                    yield self._create_error_response(f"视频生成失败: {status}")
+                    # Failure
+                    yield self._create_error_response(f"Video generation failed: {status}")
                     return
 
             except Exception as e:
                 debug_logger.log_error(f"Poll error: {str(e)}")
                 continue
 
-        # 超时
-        yield self._create_error_response(f"视频生成超时 (已轮询{max_attempts}次)")
+        # Timeout
+        yield self._create_error_response(f"Video generation timeout (polled {max_attempts} times)")
 
-    # ========== 响应格式化 ==========
+    # ========== Response Formatting ==========
 
     def _create_stream_chunk(self, content: str, role: str = None, finish_reason: str = None) -> str:
-        """创建流式响应chunk"""
+        """Create streaming response chunk"""
         import json
         import time
 
@@ -787,24 +787,24 @@ class GenerationHandler:
         return f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
 
     def _create_completion_response(self, content: str, media_type: str = "image", is_availability_check: bool = False) -> str:
-        """创建非流式响应
+        """Create non-streaming response
 
         Args:
-            content: 媒体URL或纯文本消息
-            media_type: 媒体类型 ("image" 或 "video")
-            is_availability_check: 是否为可用性检查响应 (纯文本消息)
+            content: Media URL or plain text message
+            media_type: Media type ("image" or "video")
+            is_availability_check: Whether it is an availability check response (plain text message)
 
         Returns:
-            JSON格式的响应
+            JSON formatted response
         """
         import json
         import time
 
-        # 可用性检查: 返回纯文本消息
+        # Availability check: return plain text message
         if is_availability_check:
             formatted_content = content
         else:
-            # 媒体生成: 根据媒体类型格式化内容为Markdown
+            # Media generation: format content as Markdown based on media type
             if media_type == "video":
                 formatted_content = f"```html\n<video src='{content}' controls></video>\n```"
             else:  # image
@@ -828,7 +828,7 @@ class GenerationHandler:
         return json.dumps(response, ensure_ascii=False)
 
     def _create_error_response(self, error_message: str) -> str:
-        """创建错误响应"""
+        """Create error response"""
         import json
 
         error = {
@@ -842,11 +842,11 @@ class GenerationHandler:
         return json.dumps(error, ensure_ascii=False)
 
     def _get_base_url(self) -> str:
-        """获取基础URL用于缓存文件访问"""
-        # 优先使用配置的cache_base_url
+        """Get base URL for cached file access"""
+        # Prefer configured cache_base_url
         if config.cache_base_url:
             return config.cache_base_url
-        # 否则使用服务器地址
+        # Otherwise use server address
         return f"http://{config.server_host}:{config.server_port}"
 
     async def _log_request(
@@ -858,7 +858,7 @@ class GenerationHandler:
         status_code: int,
         duration: float
     ):
-        """记录请求到数据库"""
+        """Log request to database"""
         try:
             log = RequestLog(
                 token_id=token_id,
@@ -870,6 +870,6 @@ class GenerationHandler:
             )
             await self.db.add_request_log(log)
         except Exception as e:
-            # 日志记录失败不影响主流程
+            # Log failure does not affect main process
             debug_logger.log_error(f"Failed to log request: {e}")
 

@@ -6,7 +6,7 @@ import aiohttp # Async test. Need to install
 import asyncio
 
 
-# --- 配置区域 ---
+# --- Configuration ---
 BASE_URL = os.getenv('GEMINI_FLOW2API_URL', 'http://127.0.0.1:8000')
 BACKEND_URL = BASE_URL + "/v1/chat/completions"
 API_KEY = os.getenv('GEMINI_FLOW2API_APIKEY', 'Bearer han1234')
@@ -15,28 +15,28 @@ if API_KEY is None:
 MODEL_LANDSCAPE = "gemini-3.0-pro-image-landscape"
 MODEL_PORTRAIT = "gemini-3.0-pro-image-portrait"
 
-# 修改: 增加 model 参数，默认为 None
+# Modified: added model parameter, defaulting to None
 async def request_backend_generation(
         prompt: str,
         images: list[bytes] = None,
         model: str = None) -> bytes | None:
     """
-    请求后端生成图片。
-    :param prompt: 提示词
-    :param images: 图片二进制列表
-    :param model: 指定模型名称 (可选)
-    :return: 成功返回图片bytes，失败返回None
+    Request backend to generate images.
+    :param prompt: Prompt text
+    :param images: List of image binary data
+    :param model: Specified model name (optional)
+    :return: Returns image bytes on success, None on failure
     """
-    # 更新token
+    # Update token
     images = images or []
     
-    # 逻辑: 如果未指定 model，默认使用 Landscape
+    # Logic: if no model specified, use Landscape by default
     use_model = model if model else MODEL_LANDSCAPE
 
-    # 1. 构造 Payload
+    # 1. Construct Payload
     if images:
         content_payload = [{"type": "text", "text": prompt}]
-        print(f"[Backend] 正在处理 {len(images)} 张图片输入...")
+        print(f"[Backend] Processing {len(images)} image inputs...")
         for img_bytes in images:
             b64_str = base64.b64encode(img_bytes).decode('utf-8')
             content_payload.append({
@@ -47,7 +47,7 @@ async def request_backend_generation(
         content_payload = prompt
 
     payload = {
-        "model": use_model,  # 使用选定的模型
+        "model": use_model,  # Use selected model
         "messages": [{"role": "user", "content": content_payload}],
         "stream": True
     }
@@ -58,7 +58,7 @@ async def request_backend_generation(
     }
 
     image_url = None
-    print(f"[Backend] Model: {use_model} | 发起请求: {prompt[:20]}...") 
+    print(f"[Backend] Model: {use_model} | Requesting: {prompt[:20]}...") 
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -76,9 +76,9 @@ async def request_backend_generation(
                         delta = chunk.get("choices", [{}])[0].get("delta", {})
                         msg = delta['reasoning_content']
                         if '401' in msg:
-                            msg += '\nAccess Token 已失效，需重新配置。'
+                            msg += '\nAccess Token has expired, reconfiguration required.'
                         elif '400' in msg:
-                            msg += '\n返回内容被拦截。'
+                            msg += '\nResponse content was intercepted.'
                         raise Exception(msg)
 
                     if not line_str or not line_str.startswith('data: '):
@@ -92,28 +92,28 @@ async def request_backend_generation(
                         chunk = json.loads(data_str)
                         delta = chunk.get("choices", [{}])[0].get("delta", {})
                         
-                        # 打印思考过程
+                        # Print thinking process
                         if "reasoning_content" in delta:
                             print(delta['reasoning_content'], end="", flush=True)
 
-                        # 提取内容中的图片链接
+                        # Extract image link from content
                         if "content" in delta:
                             content_text = delta["content"]
                             img_match = re.search(r'!\[.*?\]\((.*?)\)', content_text)
                             if img_match:
                                 image_url = img_match.group(1)
-                                print(f"\n[Backend] 捕获图片链接: {image_url}")
+                                print(f"\n[Backend] Captured image link: {image_url}")
                     except json.JSONDecodeError:
                         continue
             
-            # 3. 下载生成的图片
+            # 3. Download generated image
             if image_url:
                 async with session.get(image_url) as img_resp:
                     if img_resp.status == 200:
                         image_bytes = await img_resp.read()
                         return image_bytes
                     else:
-                        print(f"[Backend Error] 图片下载失败: {img_resp.status}")
+                        print(f"[Backend Error] Image download failed: {img_resp.status}")
     except Exception as e:
         print(f"[Backend Exception] {e}")
         raise e 
@@ -122,15 +122,15 @@ async def request_backend_generation(
 
 if __name__ == '__main__':
     async def main():
-        print("=== AI 绘图接口测试 ===")
-        user_prompt = input("请输入提示词 (例如 '一只猫'): ").strip()
+        print("=== AI Drawing API Test ===")
+        user_prompt = input("Please enter prompt (e.g., 'a cat'): ").strip()
         if not user_prompt:
             user_prompt = "A cute cat in the garden"
         
-        print(f"正在请求: {user_prompt}")
+        print(f"Requesting: {user_prompt}")
         
-        # 这里的 images 传空列表用于测试文生图
-        # 如果想测试图生图，你需要手动读取本地文件：
+        # images empty list for testing text-to-image
+        # for image-to-image, read local file:
         # with open("output_test.jpg", "rb") as f: img_data = f.read()
         # result = await request_backend_generation(user_prompt, [img_data])
         
@@ -140,11 +140,11 @@ if __name__ == '__main__':
             filename = "output_test.jpg"
             with open(filename, "wb") as f:
                 f.write(result)
-            print(f"\n[Success] 图片已保存为 {filename}，大小: {len(result)} bytes")
+            print(f"\n[Success] Image saved as {filename}, size: {len(result)} bytes")
         else:
-            print("\n[Failed] 生成失败")
+            print("\n[Failed] Generation failed")
 
-    # 运行测试
-    if os.name == 'nt':  # Windows 兼容性
+    # Run test
+    if os.name == 'nt':  # Windows compatibility
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())

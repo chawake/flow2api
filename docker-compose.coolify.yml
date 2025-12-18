@@ -8,7 +8,6 @@ services:
       - "8002:8000"
     volumes:
       - /data/coolify/applications/nk8k0wgs0o4w40swkok840ok/data:/app/data
-      - /data/coolify/applications/nk8k0wgs0o4w40swkok840ok/config:/app/config
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

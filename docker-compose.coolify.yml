@@ -7,8 +7,8 @@ services:
     ports:
       - "8002:8000"
     volumes:
-      - /data/coolify/applications/FLOW_APP_ID/data:/app/data
-      - /data/coolify/applications/FLOW_APP_ID/config/setting.toml:/app/config/setting.toml
+      - /data/coolify/applications/nk8k0wgs0o4w40swkok840ok/data:/app/data
+      - /data/coolify/applications/nk8k0wgs0o4w40swkok840ok/config/setting.toml:/app/config/setting.toml
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
@@ -33,4 +33,4 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv4.conf.all.src_valid_mark=1
     volumes:
-      - /data/coolify/applications/FLOW_APP_ID/data:/var/lib/cloudflare-warp
+      - /data/coolify/applications/nk8k0wgs0o4w40swkok840ok/data:/var/lib/cloudflare-warp

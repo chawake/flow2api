@@ -28,18 +28,41 @@ async def extract_site_key():
             # usually render=KEY or execute(KEY)
             # The one in the code is 6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV
             
-            # Simple regex for typical key structure (40 chars, start with 6L/6I)
-            keys = re.findall(r'(\b6[A-Za-z0-9_-]{38}\b)', content)
+            # Search for anything looking like a key
+            print("Searching for keys...")
             
-            print("\nFound Potential Keys:")
-            unique_keys = set(keys)
-            for k in unique_keys:
+            # Pattern 1: execute('KEY', ...)
+            p1 = re.findall(r"execute\(['\"](6[a-zA-Z0-9_-]{39})['\"]", content)
+            
+            # Pattern 2: render=KEY
+            p2 = re.findall(r"render=(6[a-zA-Z0-9_-]{39})", content)
+            
+            # Pattern 3: "siteKey": "KEY" or "key": "KEY"
+            p3 = re.findall(r"['\"](?:siteKey|key)['\"]\s*:\s*['\"](6[a-zA-Z0-9_-]{39})['\"]", content)
+            
+            # Pattern 4: Broad search for any 40-char key starting with 6L/6I
+            p4 = re.findall(r"\b(6[L|I][a-zA-Z0-9_-]{38})\b", content)
+            
+            all_keys = set(p1 + p2 + p3 + p4)
+            
+            print(f"\nPotential Keys Found: {len(all_keys)}")
+            for k in all_keys:
                 print(f" - {k}")
 
-            if "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV" in unique_keys:
-                print("\n✅ Match found! The hardcoded key is presently on the page.")
+            hardcoded = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV"
+            if hardcoded in all_keys:
+                print(f"\n✅ CORRECT KEY: {hardcoded}")
             else:
-                print("\n⚠️ NO MATCH for hardcoded key. The key might have changed!")
+                print(f"\n⚠️  MISMATCH: The hardcoded key\n    {hardcoded}\n    was NOT found in the page!")
+                
+                # Context search
+                if "recaptcha" in content.lower():
+                    print("\n'recaptcha' IS mentioned in the page. Context:")
+                    start = content.lower().find("recaptcha")
+                    print(content[start:start+200])
+                else:
+                    print("\n'recaptcha' is NOT mentioned in the HTML. It might be loaded via a chunk.")
+
 
         except Exception as e:
             print(f"Error: {e}")

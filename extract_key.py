@@ -105,8 +105,8 @@ async def extract_site_key():
                     # Just find "action:" strings in likely relevant files (flow-*.js)
                     if "pages/tools/flow" in js_url:
                         print(f"    ⭐ FOUND FLOW SCRIPT: {js_url}")
-                        print("    Saving to 'flow_script.js' for analysis...")
-                        with open("flow_script.js", "w", encoding="utf-8") as f:
+                        print("    Saving to '/app/flow_script.js' for analysis...")
+                        with open("/app/flow_script.js", "w", encoding="utf-8") as f:
                             f.write(js_content)
                         print("    Saved.")
 

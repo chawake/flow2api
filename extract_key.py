@@ -89,6 +89,12 @@ async def extract_site_key():
                     # Search for the KEY in the JS to find the action next to it
                     if "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV" in js_content:
                         print(f"    ✅ KEY FOUND IN {js_url}")
+                        
+                        print("    Saving to '/app/key_source.js' for analysis...")
+                        with open("/app/key_source.js", "w", encoding="utf-8") as f:
+                            f.write(js_content)
+                        print("    Saved.")
+
                         idx = js_content.find("6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV")
                         start = max(0, idx - 200)
                         end = min(len(js_content), idx + 300)

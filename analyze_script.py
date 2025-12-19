@@ -1,6 +1,6 @@
 import re
 
-SCRIPT_PATH = "/app/flow_script.js"
+SCRIPT_PATH = "/app/key_source.js"
 SITE_KEY = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV"
 
 def analyze():

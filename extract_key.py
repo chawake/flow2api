@@ -103,13 +103,12 @@ async def extract_site_key():
                             print(f"    found .execute action: {exc}")
                             
                     # Just find "action:" strings in likely relevant files (flow-*.js)
-                    if "flow-" in js_url or "_app" in js_url:
-                        # loose search for action keys
-                        loose_actions = re.findall(r"['\"]?action['\"]?\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
-                        for la in set(loose_actions):
-                             # Filter out generic words if possible, or just print everything
-                             if len(la) > 2: 
-                                print(f"    POSSIBLE ACTION in {js_url.split('/')[-1]}: {la}")
+                    if "pages/tools/flow" in js_url:
+                        print(f"    ⭐ FOUND FLOW SCRIPT: {js_url}")
+                        print("    Saving to 'flow_script.js' for analysis...")
+                        with open("flow_script.js", "w", encoding="utf-8") as f:
+                            f.write(js_content)
+                        print("    Saved.")
 
                 except Exception as ex:
                     print(f"    Failed: {ex}")

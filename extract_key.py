@@ -63,19 +63,40 @@ async def extract_site_key():
                 else:
                     print("\n'recaptcha' is NOT mentioned in the HTML. It might be loaded via a chunk.")
 
-            # Search for Action names
-            print("\nSearching for Actions...")
+            print("\nSearching for Actions in HTML...")
             actions = re.findall(r"action['\"]?\s*[:=]\s*['\"]([a-zA-Z0-9_]+)['\"]", content)
             unique_actions = set(actions)
-            
-            print(f"Potential Actions Found: {len(unique_actions)}")
             for a in unique_actions:
                 print(f" - {a}")
+
+            # Find JS files
+            print("\nScanning JS files for Actions...")
+            scripts = re.findall(r"src=['\"]([^'\"]+\.js)['\"]", content)
+            
+            for s in scripts:
+                if s.startswith("/"):
+                    js_url = "https://labs.google" + s
+                elif s.startswith("http"):
+                    js_url = s
+                else:
+                    js_url = "https://labs.google/fx/tools/flow/" + s
                 
-            if "FLOW_GENERATION" in unique_actions:
-                print("\n✅ MATCH: 'FLOW_GENERATION' found in page/scripts.")
-            else:
-                print("\n⚠️  WARNING: 'FLOW_GENERATION' NOT found. The site might use a different action name!")
+                print(f"  Fetching {js_url}...")
+                try:
+                    js_resp = await session.get(js_url, proxy=PROXY_URL, impersonate="chrome110", timeout=10)
+                    js_content = js_resp.text
+                    
+                    # Regex for actions in JS (broad)
+                    # {action:"NAME"} or action:"NAME"
+                    js_actions = re.findall(r"action\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
+                    if js_actions:
+                        for ja in set(js_actions):
+                            print(f"    FOUND ACTION: {ja}")
+                except Exception as ex:
+                    print(f"    Failed: {ex}")
+
+            if "FLOW_GENERATION" in unique_actions: # basic check for logic flow
+                pass 
 
         except Exception as e:
             print(f"Error: {e}")

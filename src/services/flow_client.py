@@ -691,7 +691,7 @@ class FlowClient:
         if captcha_method == "personal":
             try:
                 from .browser_captcha_personal import BrowserCaptchaService
-                service = await BrowserCaptchaService.get_instance(self.proxy_manager)
+                service = await BrowserCaptchaService.get_instance(self.proxy_manager.db)
                 return await service.get_token(project_id)
             except Exception as e:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")
@@ -700,7 +700,7 @@ class FlowClient:
         elif captcha_method == "browser":
             try:
                 from .browser_captcha import BrowserCaptchaService
-                service = await BrowserCaptchaService.get_instance(self.proxy_manager)
+                service = await BrowserCaptchaService.get_instance(self.proxy_manager.db)
                 return await service.get_token(project_id)
             except Exception as e:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")

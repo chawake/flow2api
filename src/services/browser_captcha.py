@@ -213,6 +213,11 @@ class BrowserCaptchaService:
             
             page = await context.new_page()
 
+            # Block heavy resources to speed up load/reduce bandwidth
+            await page.route("**/*", lambda route: route.abort() 
+                if route.request.resource_type in ["image", "media", "font", "stylesheet"] 
+                else route.continue_())
+
             # Warmup: Visit Google first to establish trust/cookies
             try:
                 debug_logger.log_info("[BrowserCaptcha] Warming up on google.com...")
@@ -226,9 +231,10 @@ class BrowserCaptchaService:
 
             # Access page
             try:
-                await page.goto(website_url, wait_until="domcontentloaded", timeout=45000)
+                # Reduced timeout, we don't need full load if we inject script anyway
+                await page.goto(website_url, wait_until="domcontentloaded", timeout=30000)
             except Exception as e:
-                debug_logger.log_warning(f"[BrowserCaptcha] Page load timeout or failed: {str(e)}")
+                debug_logger.log_warning(f"[BrowserCaptcha] Page load timeout (continuing): {str(e)}")
 
             # --- Simulate Human Interaction ---
             try:

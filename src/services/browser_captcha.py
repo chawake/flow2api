@@ -122,8 +122,14 @@ class BrowserCaptchaService:
                     '--disable-blink-features=AutomationControlled',
                     '--disable-dev-shm-usage',
                     '--no-sandbox',
-                    '--disable-setuid-sandbox'
-                ]
+                    '--disable-setuid-sandbox',
+                    '--disable-infobars',
+                    '--window-size=1920,1080',
+                    '--start-maximized',
+                    '--disable-extensions',
+                    '--ignore-certificate-errors',
+                ],
+                'ignore_default_args': ["--enable-automation"]
             }
 
             # If proxy provided, parse and add proxy configuration

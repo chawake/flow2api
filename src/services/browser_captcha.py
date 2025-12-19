@@ -149,14 +149,14 @@ class BrowserCaptchaService:
             debug_logger.log_error(f"[BrowserCaptcha] ❌ Browser start failed: {str(e)}")
             raise
 
-    async def get_token(self, project_id: str) -> Optional[str]:
-        """Get reCAPTCHA token
+    async def get_token(self, project_id: str) -> tuple[Optional[str], Optional[list[dict]]]:
+        """Get reCAPTCHA token and cookies
 
         Args:
             project_id: Flow project ID
 
         Returns:
-            reCAPTCHA token string, returns None if failed
+            (token, cookies): Tuple of token string and list of cookies, (None, None) if failed
         """
         if not self._initialized:
             await self.initialize()
@@ -350,25 +350,24 @@ class BrowserCaptchaService:
                 }
             """, self.website_key)
 
-            duration_ms = (time.time() - start_time) * 1000
+            # Extract cookies from context
+            cookies = await context.cookies()
+            debug_logger.log_info(f"[BrowserCaptcha] Extracted {len(cookies)} cookies from browser session.")
 
+            await context.close()
+            end_time = time.time()
             if token:
-                debug_logger.log_info(f"[BrowserCaptcha] ✅ Token obtained successfully (took {duration_ms:.0f}ms)")
-                return token
+                debug_logger.log_info(f"[BrowserCaptcha] ✅ Token obtained successfully (took {int((end_time - start_time) * 1000)}ms)")
+                return token, cookies
             else:
-                debug_logger.log_error("[BrowserCaptcha] Token retrieval failed (returned null)")
-                return None
+                debug_logger.log_error(f"[BrowserCaptcha] ❌ Failed to obtain token (took {int((end_time - start_time) * 1000)}ms)")
+                return None, None
 
         except Exception as e:
-            debug_logger.log_error(f"[BrowserCaptcha] Get token exception: {str(e)}")
-            return None
-        finally:
-            # Close context
+            debug_logger.log_error(f"[BrowserCaptcha] ❌ Unexpected error: {str(e)}")
             if context:
-                try:
-                    await context.close()
-                except:
-                    pass
+                await context.close()
+            return None, None
 
     async def close(self):
         """Close browser"""

@@ -27,7 +27,8 @@ class FlowClient:
         use_st: bool = False,
         st_token: Optional[str] = None,
         use_at: bool = False,
-        at_token: Optional[str] = None
+        at_token: Optional[str] = None,
+        cookies: Optional[Dict] = None  # Added cookies support
     ) -> Dict[str, Any]:
         """Unified HTTP request handling
 
@@ -52,6 +53,26 @@ class FlowClient:
         # ST Authentication - use Cookie
         if use_st and st_token:
             headers["Cookie"] = f"__Secure-next-auth.session-token={st_token}"
+        
+        # Inject Browser Cookies if provided
+        if cookies:
+            cookie_parts = []
+            for c in cookies:
+                # Playwright returns list of dicts, we need "key=value"
+                if isinstance(c, dict) and 'name' in c and 'value' in c:
+                    cookie_parts.append(f"{c['name']}={c['value']}")
+            
+            if cookie_parts:
+                browser_cookies = "; ".join(cookie_parts)
+                current_cookie = headers.get("Cookie", "")
+                if current_cookie:
+                    headers["Cookie"] = f"{current_cookie}; {browser_cookies}"
+                else:
+                    headers["Cookie"] = browser_cookies
+                
+                if config.debug_enabled:
+                     debug_logger.log_info(f"[FlowClient] Injected {len(cookie_parts)} browser cookies")
+
 
         # AT Authentication - use Bearer
         if use_at and at_token:
@@ -65,18 +86,21 @@ class FlowClient:
 
         # Log request
         if config.debug_enabled:
-            debug_logger.log_request(
-                method=method,
-                url=url,
-                headers=headers,
-                body=json_data,
-                proxy=proxy_url
-            )
+            try:
+                debug_logger.log_request(
+                    method=method,
+                    url=url,
+                    headers=headers,
+                    body=json_data,
+                    proxy=proxy_url
+                )
+            except:
+                pass
 
         start_time = time.time()
 
         try:
-            async with AsyncSession() as session:
+            async with AsyncSession(verify=False) as session: # verify=False because of proxy MITM
                 if method.upper() == "GET":
                     response = await session.get(
                         url,
@@ -691,20 +715,24 @@ class FlowClient:
         """Generate sceneId: UUID"""
         return str(uuid.uuid4())
 
-    async def _get_recaptcha_token(self, project_id: str) -> Optional[str]:
-        """Get reCAPTCHA token - Supports two methods"""
-        captcha_method = config.captcha_method
+    async def _get_recaptcha_token(self, project_id: str) -> tuple[Optional[str], Optional[List[Dict]]]:
+        """Get reCAPTCHA token and cookies using configured method"""
+        
+        captcha_method = "browser"
+        if self.proxy_manager.db:
+            captcha_config = await self.proxy_manager.db.get_captcha_config()
+            captcha_method = captcha_config.captcha_method
 
-        # Permanent browser captcha
-        if captcha_method == "personal":
+        # Personal browser captcha
+        if captcha_method == "browser_personal":
             try:
                 from .browser_captcha_personal import BrowserCaptchaService
                 service = await BrowserCaptchaService.get_instance(self.proxy_manager.db)
                 return await service.get_token(project_id)
             except Exception as e:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")
-                return None
-        # Headless browser captcha
+                return None, None
+        # Headless browser captcha (Default)
         elif captcha_method == "browser":
             try:
                 from .browser_captcha import BrowserCaptchaService
@@ -712,18 +740,18 @@ class FlowClient:
                 return await service.get_token(project_id)
             except Exception as e:
                 debug_logger.log_error(f"[reCAPTCHA Browser] error: {str(e)}")
-                return None
+                return None, None
         else:
-            # YesCaptcha captcha
+            # YesCaptcha (Doesn't support cookies yet)
             client_key = config.yescaptcha_api_key
             if not client_key:
                 debug_logger.log_info("[reCAPTCHA] API key not configured, skipping")
-                return None
+                return None, None
 
             website_key = "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV"
             website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
             base_url = config.yescaptcha_base_url
-            page_action = "FLOW_GENERATION"
+            page_action = "submit" # Use 'submit' logic for YesCaptcha too if applicable
 
             try:
                 async with AsyncSession() as session:
@@ -741,19 +769,10 @@ class FlowClient:
                     result = await session.post(create_url, json=create_data, impersonate="chrome110")
                     result_json = result.json()
                     task_id = result_json.get('taskId')
-
+                    
                     debug_logger.log_info(f"[reCAPTCHA] created task_id: {task_id}")
 
                     if not task_id:
-                        return None
-
-                    get_url = f"{base_url}/getTaskResult"
-                    for i in range(40):
-                        get_data = {
-                            "clientKey": client_key,
-                            "taskId": task_id
-                        }
-                        result = await session.post(get_url, json=get_data, impersonate="chrome110")
                         result_json = result.json()
 
                         debug_logger.log_info(f"[reCAPTCHA] polling #{i+1}: {result_json}")

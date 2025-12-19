@@ -302,7 +302,7 @@ class BrowserCaptchaService:
                             return null;
                         }
 
-                        # Ensure grecaptcha is ready
+                        // Ensure grecaptcha is ready
                         await new Promise((resolve, reject) => {
                             const timeout = setTimeout(() => {
                                 reject(new Error('reCAPTCHA load timeout'));
@@ -319,7 +319,7 @@ class BrowserCaptchaService:
                             }
                         });
 
-                        # Execute reCAPTCHA v3
+                        // Execute reCAPTCHA v3
                         const token = await window.grecaptcha.execute(websiteKey, {
                             action: 'FLOW_GENERATION'
                         });

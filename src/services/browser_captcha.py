@@ -170,8 +170,47 @@ class BrowserCaptchaService:
                 viewport={'width': 1920, 'height': 1080},
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
-                timezone_id='America/New_York'
+                timezone_id='America/New_York',
+                device_scale_factor=1,
+                has_touch=False,
+                is_mobile=False,
+                java_script_enabled=True,
             )
+
+            # --- Stealth Injections to hide automation ---
+            await context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+            """)
+            await context.add_init_script("""
+                // Pass the Chrome Test
+                window.chrome = {
+                    runtime: {}
+                };
+            """)
+            await context.add_init_script("""
+                // Pass the Permissions Test
+                const originalQuery = window.navigator.permissions.query;
+                return window.navigator.permissions.query = (parameters) => (
+                    parameters.name === 'notifications' ?
+                        Promise.resolve({ state: Notification.permission }) :
+                        originalQuery(parameters)
+                );
+            """)
+            await context.add_init_script("""
+                // Pass the Plugins Length Test
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5],
+                });
+            """)
+            await context.add_init_script("""
+                // Pass the Languages Test
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['en-US', 'en'],
+                });
+            """)
+            
             page = await context.new_page()
 
             website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
@@ -183,6 +222,23 @@ class BrowserCaptchaService:
                 await page.goto(website_url, wait_until="domcontentloaded", timeout=30000)
             except Exception as e:
                 debug_logger.log_warning(f"[BrowserCaptcha] Page load timeout or failed: {str(e)}")
+
+            # --- Simulate Human Interaction ---
+            try:
+                import random
+                debug_logger.log_info("[BrowserCaptcha] Simulating human behavior...")
+                # Mouse movements
+                for _ in range(3):
+                    x = random.randint(100, 1800)
+                    y = random.randint(100, 900)
+                    await page.mouse.move(x, y, steps=10)
+                    await asyncio.sleep(random.uniform(0.1, 0.3))
+                
+                # Small scroll
+                await page.mouse.wheel(0, random.randint(100, 500))
+                await asyncio.sleep(0.5)
+            except Exception as ex:
+                debug_logger.log_warning(f"[BrowserCaptcha] Interaction error: {ex}")
 
             # Check and inject reCAPTCHA v3 script
             debug_logger.log_info("[BrowserCaptcha] Checking and loading reCAPTCHA v3 script...")

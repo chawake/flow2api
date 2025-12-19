@@ -86,12 +86,20 @@ async def extract_site_key():
                     js_resp = await session.get(js_url, proxy=PROXY_URL, impersonate="chrome110", timeout=10)
                     js_content = js_resp.text
                     
-                    # Regex for actions in JS (broad)
-                    # {action:"NAME"} or action:"NAME"
+                    # Search for the KEY in the JS to find the action next to it
+                    if "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV" in js_content:
+                        print(f"    ✅ KEY FOUND IN {js_url}")
+                        idx = js_content.find("6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV")
+                        start = max(0, idx - 200)
+                        end = min(len(js_content), idx + 300)
+                        print(f"    CONTEXT: ...{js_content[start:end]}...\n")
+
+                    # Also broad search for "action" again just in case
                     js_actions = re.findall(r"action\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
                     if js_actions:
                         for ja in set(js_actions):
-                            print(f"    FOUND ACTION: {ja}")
+                            print(f"    FOUND ACTION (Regex): {ja}")
+
                 except Exception as ex:
                     print(f"    Failed: {ex}")
 

@@ -213,13 +213,20 @@ class BrowserCaptchaService:
             
             page = await context.new_page()
 
-            website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
+            # Warmup: Visit Google first to establish trust/cookies
+            try:
+                debug_logger.log_info("[BrowserCaptcha] Warming up on google.com...")
+                await page.goto("https://www.google.com", wait_until="domcontentloaded", timeout=15000)
+                await asyncio.sleep(2)
+            except Exception as e:
+                 debug_logger.log_warning(f"[BrowserCaptcha] Warmup failed (ignoring): {e}")
 
+            website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
             debug_logger.log_info(f"[BrowserCaptcha] Accessing page: {website_url}")
 
             # Access page
             try:
-                await page.goto(website_url, wait_until="domcontentloaded", timeout=30000)
+                await page.goto(website_url, wait_until="domcontentloaded", timeout=45000)
             except Exception as e:
                 debug_logger.log_warning(f"[BrowserCaptcha] Page load timeout or failed: {str(e)}")
 
@@ -227,38 +234,42 @@ class BrowserCaptchaService:
             try:
                 import random
                 debug_logger.log_info("[BrowserCaptcha] Simulating human behavior...")
-                # Mouse movements
-                for _ in range(3):
+                
+                # Extended interaction
+                for _ in range(5):
                     x = random.randint(100, 1800)
                     y = random.randint(100, 900)
-                    await page.mouse.move(x, y, steps=10)
-                    await asyncio.sleep(random.uniform(0.1, 0.3))
+                    await page.mouse.move(x, y, steps=15)
+                    await asyncio.sleep(random.uniform(0.2, 0.5))
                 
-                # Small scroll
                 await page.mouse.wheel(0, random.randint(100, 500))
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
             except Exception as ex:
                 debug_logger.log_warning(f"[BrowserCaptcha] Interaction error: {ex}")
 
-            # Check and inject reCAPTCHA v3 script
-            debug_logger.log_info("[BrowserCaptcha] Checking and loading reCAPTCHA v3 script...")
-            script_loaded = await page.evaluate("""
-                () => {
-                    if (window.grecaptcha && typeof window.grecaptcha.execute === 'function') {
-                        return true;
-                    }
-                    return false;
-                }
-            """)
+            # Check and inject reCAPTCHA Enterprise script
+            debug_logger.log_info("[BrowserCaptcha] Checking for native reCAPTCHA Enterprise script...")
+            
+            # Wait longer for native script (it might be lazy loaded)
+            native_loaded = False
+            for _ in range(10): # Wait up to 5 seconds
+                 is_ready = await page.evaluate("() => typeof window.grecaptcha !== 'undefined' && typeof window.grecaptcha.enterprise !== 'undefined'")
+                 if is_ready:
+                     native_loaded = True
+                     debug_logger.log_info("[BrowserCaptcha] Native reCAPTCHA Enterprise found!")
+                     break
+                 await asyncio.sleep(0.5)
+
+            script_loaded = native_loaded
 
             if not script_loaded:
                 # Inject script
-                debug_logger.log_info("[BrowserCaptcha] Injecting reCAPTCHA v3 script...")
+                debug_logger.log_info("[BrowserCaptcha] Injecting reCAPTCHA Enterprise script...")
                 await page.evaluate(f"""
                     () => {{
                         return new Promise((resolve) => {{
                             const script = document.createElement('script');
-                            script.src = 'https://www.google.com/recaptcha/api.js?render={self.website_key}';
+                            script.src = 'https://www.google.com/recaptcha/enterprise.js?render={self.website_key}';
                             script.async = true;
                             script.defer = true;
                             script.onload = () => resolve(true);
@@ -269,26 +280,27 @@ class BrowserCaptchaService:
                 """)
 
             # Wait for reCAPTCHA to load and initialize
-            debug_logger.log_info("[BrowserCaptcha] Waiting for reCAPTCHA initialization...")
+            debug_logger.log_info("[BrowserCaptcha] Waiting for reCAPTCHA Enterprise initialization...")
             for i in range(20):
                 grecaptcha_ready = await page.evaluate("""
                     () => {
                         return window.grecaptcha &&
-                               typeof window.grecaptcha.execute === 'function';
+                               window.grecaptcha.enterprise &&
+                               typeof window.grecaptcha.enterprise.execute === 'function';
                     }
                 """)
                 if grecaptcha_ready:
-                    debug_logger.log_info(f"[BrowserCaptcha] reCAPTCHA ready (waited {i*0.5} seconds)")
+                    debug_logger.log_info(f"[BrowserCaptcha] reCAPTCHA Enterprise ready (waited {i*0.5} seconds)")
                     break
                 await asyncio.sleep(0.5)
             else:
-                debug_logger.log_warning("[BrowserCaptcha] reCAPTCHA initialization timeout, continuing to execute...")
+                debug_logger.log_warning("[BrowserCaptcha] reCAPTCHA Enterprise initialization timeout, continuing to execute...")
 
             # Extra wait to ensure full initialization
             await page.wait_for_timeout(1000)
 
             # Execute reCAPTCHA and get token
-            debug_logger.log_info("[BrowserCaptcha] Executing reCAPTCHA validation...")
+            debug_logger.log_info("[BrowserCaptcha] Executing reCAPTCHA Enterprise validation...")
             token = await page.evaluate("""
                 async (websiteKey) => {
                     try {
@@ -297,8 +309,8 @@ class BrowserCaptchaService:
                             return null;
                         }
 
-                        if (typeof window.grecaptcha.execute !== 'function') {
-                            console.error('[BrowserCaptcha] window.grecaptcha.execute is not a function');
+                        if (!window.grecaptcha.enterprise || typeof window.grecaptcha.enterprise.execute !== 'function') {
+                            console.error('[BrowserCaptcha] window.grecaptcha.enterprise.execute is not a function');
                             return null;
                         }
 
@@ -308,8 +320,8 @@ class BrowserCaptchaService:
                                 reject(new Error('reCAPTCHA load timeout'));
                             }, 15000);
 
-                            if (window.grecaptcha && window.grecaptcha.ready) {
-                                window.grecaptcha.ready(() => {
+                            if (window.grecaptcha.enterprise && window.grecaptcha.enterprise.ready) {
+                                window.grecaptcha.enterprise.ready(() => {
                                     clearTimeout(timeout);
                                     resolve();
                                 });
@@ -319,8 +331,8 @@ class BrowserCaptchaService:
                             }
                         });
 
-                        // Execute reCAPTCHA v3
-                        const token = await window.grecaptcha.execute(websiteKey, {
+                        // Execute reCAPTCHA Enterprise
+                        const token = await window.grecaptcha.enterprise.execute(websiteKey, {
                             action: 'submit'
                         });
 

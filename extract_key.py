@@ -63,7 +63,6 @@ async def extract_site_key():
                 else:
                     print("\n'recaptcha' is NOT mentioned in the HTML. It might be loaded via a chunk.")
 
-
             # Search for Action names
             print("\nSearching for Actions...")
             actions = re.findall(r"action['\"]?\s*[:=]\s*['\"]([a-zA-Z0-9_]+)['\"]", content)
@@ -77,6 +76,9 @@ async def extract_site_key():
                 print("\n✅ MATCH: 'FLOW_GENERATION' found in page/scripts.")
             else:
                 print("\n⚠️  WARNING: 'FLOW_GENERATION' NOT found. The site might use a different action name!")
+
+        except Exception as e:
+            print(f"Error: {e}")
 
 
 if __name__ == "__main__":

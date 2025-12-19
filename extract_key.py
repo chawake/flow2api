@@ -19,6 +19,11 @@ async def extract_site_key():
             print(f"Status: {response.status_code}")
             content = response.text
             
+            # Print title to see where we are
+            title_match = re.search(r'<title>(.*?)</title>', content, re.IGNORECASE)
+            print(f"Page Title: {title_match.group(1) if title_match else 'No Title found'}")
+            print(f"Content Preview (first 500 chars):\n{content[:500]}\n")
+            
             # Look for reCAPTCHA keys pattern (standard and variations)
             # usually render=KEY or execute(KEY)
             # The one in the code is 6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV

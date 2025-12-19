@@ -321,7 +321,7 @@ class BrowserCaptchaService:
 
                         // Execute reCAPTCHA v3
                         const token = await window.grecaptcha.execute(websiteKey, {
-                            action: 'generate'
+                            action: 'submit'
                         });
 
                         return token;

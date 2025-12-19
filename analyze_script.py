@@ -45,17 +45,25 @@ def analyze():
     if not found_exec:
         print("No explicit .execute(key, {action: ...}) pattern found.")
 
-    # 3. Broad "current" action search
-    # Sometimes it's passed as a variable: e.g. action: C
-    # We look for "action":"VALUE" or action:"VALUE"
-    print("\nBroad search for 'action':")
-    action_matches = re.findall(r"['\"]?action['\"]?\s*:\s*([^,}\]]+)", content)
-    unique_actions = set(action_matches)
-    
-    for a in unique_actions:
-        # Filter noise (functions, long code blocks)
-        if len(a) < 30 and "function" not in a and "(" not in a:
-            print(f" - {a}")
+    # 3. Contextual search for "recaptcha"
+    print("\nSearching for 'recaptcha' mentions...")
+    recaptcha_matches = [m.start() for m in re.finditer(r"recaptcha", content, re.IGNORECASE)]
+    if recaptcha_matches:
+        print(f"Found {len(recaptcha_matches)} mentions.")
+        for idx in recaptcha_matches[:3]: # Print first 3 contexts
+            start = max(0, idx - 100)
+            end = min(len(content), idx + 200)
+            print(f"CONTEXT (around 'recaptcha'):\n...{content[start:end]}...\n")
+    else:
+        print("No 'recaptcha' string found.")
+
+    # 4. Search for common default actions
+    print("\nChecking for common action names as string literals:")
+    common_actions = ['homepage', 'login', 'submit', 'verify', 'flow', 'generate', 'signup']
+    for action in common_actions:
+        # Search for "action" with quote variations
+        if f'"{action}"' in content or f"'{action}'" in content:
+            print(f" -> FOUND STRING LITERAL: '{action}'")
 
 if __name__ == "__main__":
     analyze()

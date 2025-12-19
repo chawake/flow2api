@@ -42,6 +42,9 @@ class FlowClient:
             at_token: Access Token
         """
         proxy_url = await self.proxy_manager.get_proxy_url()
+        if config.debug_enabled:
+            debug_logger.log_info(f"[FlowClient] Making {method} request to {url}")
+            debug_logger.log_info(f"[FlowClient] Using Proxy: {proxy_url or 'None'}")
 
         if headers is None:
             headers = {}
@@ -311,6 +314,11 @@ class FlowClient:
         # Get reCAPTCHA token
         recaptcha_token = await self._get_recaptcha_token(project_id) or ""
         session_id = self._generate_session_id()
+        
+        if config.debug_enabled:
+            debug_logger.log_info(f"[FlowClient] generate_image using recaptcha_token length: {len(recaptcha_token)}")
+            if not recaptcha_token:
+                debug_logger.log_warning("[FlowClient] ⚠️ WARNING: recaptcha_token is EMPTY! This will likely cause a 403.")
 
         # Build request
         request_data = {

@@ -95,10 +95,21 @@ async def extract_site_key():
                         print(f"    CONTEXT: ...{js_content[start:end]}...\n")
 
                     # Also broad search for "action" again just in case
-                    js_actions = re.findall(r"action\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
-                    if js_actions:
-                        for ja in set(js_actions):
-                            print(f"    FOUND ACTION (Regex): {ja}")
+                    # Look for .execute(KEY, {action: 'NAME'}) patterns
+                    # Minified might look like: .execute(k,{action:"foo"})
+                    executes = re.findall(r"\.execute\([^,]+,\s*\{[^}]*action\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
+                    if executes:
+                         for exc in set(executes):
+                            print(f"    found .execute action: {exc}")
+                            
+                    # Just find "action:" strings in likely relevant files (flow-*.js)
+                    if "flow-" in js_url or "_app" in js_url:
+                        # loose search for action keys
+                        loose_actions = re.findall(r"['\"]?action['\"]?\s*:\s*['\"]([a-zA-Z0-9_]+)['\"]", js_content)
+                        for la in set(loose_actions):
+                             # Filter out generic words if possible, or just print everything
+                             if len(la) > 2: 
+                                print(f"    POSSIBLE ACTION in {js_url.split('/')[-1]}: {la}")
 
                 except Exception as ex:
                     print(f"    Failed: {ex}")

@@ -219,6 +219,9 @@ class BrowserCaptchaService:
                 else route.continue_())
 
             # Access page
+            website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
+            debug_logger.log_info(f"[BrowserCaptcha] Accessing page: {website_url}")
+
             try:
                 # Reduced timeout, we don't need full load if we inject script anyway
                 await page.goto(website_url, wait_until="domcontentloaded", timeout=60000)

@@ -335,8 +335,11 @@ class FlowClient:
         """
         url = f"{self.api_base_url}/projects/{project_id}/flowMedia:batchGenerateImages"
 
-        # Get reCAPTCHA token
-        recaptcha_token = await self._get_recaptcha_token(project_id) or ""
+        # Get reCAPTCHA token and cookies
+        recaptcha_token, browser_cookies = await self._get_recaptcha_token(project_id)
+        if not recaptcha_token:
+             recaptcha_token = ""
+             
         session_id = self._generate_session_id()
         
         if config.debug_enabled:
@@ -372,7 +375,8 @@ class FlowClient:
             url=url,
             json_data=json_data,
             use_at=True,
-            at_token=at
+            at_token=at,
+            cookies=browser_cookies
         )
 
         return result

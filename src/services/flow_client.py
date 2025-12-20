@@ -101,13 +101,16 @@ class FlowClient:
 
         try:
             async with AsyncSession(verify=False) as session: # verify=False because of proxy MITM
+                # Use exact User-Agent from browser_captcha.py
+                headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
                 if method.upper() == "GET":
                     response = await session.get(
                         url,
                         headers=headers,
                         proxy=proxy_url,
                         timeout=self.timeout,
-                        impersonate="chrome110"
+                        impersonate="chrome120"
                     )
                 else:  # POST
                     response = await session.post(
@@ -116,7 +119,7 @@ class FlowClient:
                         json=json_data,
                         proxy=proxy_url,
                         timeout=self.timeout,
-                        impersonate="chrome110"
+                        impersonate="chrome120"
                     )
 
                 duration_ms = (time.time() - start_time) * 1000

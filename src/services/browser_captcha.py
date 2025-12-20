@@ -218,21 +218,10 @@ class BrowserCaptchaService:
                 if route.request.resource_type in ["image", "media", "font", "stylesheet"] 
                 else route.continue_())
 
-            # Warmup: Visit Google first to establish trust/cookies
-            try:
-                debug_logger.log_info("[BrowserCaptcha] Warming up on google.com...")
-                await page.goto("https://www.google.com", wait_until="domcontentloaded", timeout=15000)
-                await asyncio.sleep(2)
-            except Exception as e:
-                 debug_logger.log_warning(f"[BrowserCaptcha] Warmup failed (ignoring): {e}")
-
-            website_url = f"https://labs.google/fx/tools/flow/project/{project_id}"
-            debug_logger.log_info(f"[BrowserCaptcha] Accessing page: {website_url}")
-
             # Access page
             try:
                 # Reduced timeout, we don't need full load if we inject script anyway
-                await page.goto(website_url, wait_until="domcontentloaded", timeout=30000)
+                await page.goto(website_url, wait_until="domcontentloaded", timeout=60000)
             except Exception as e:
                 debug_logger.log_warning(f"[BrowserCaptcha] Page load timeout (continuing): {str(e)}")
 
@@ -339,7 +328,7 @@ class BrowserCaptchaService:
 
                         // Execute reCAPTCHA Enterprise
                         const token = await window.grecaptcha.enterprise.execute(websiteKey, {
-                            action: 'submit'
+                            action: 'FLOW_GENERATION'
                         });
 
                         return token;
